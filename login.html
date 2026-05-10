@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Login - Traveloop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.3); }
+        .bg-animate { background: linear-gradient(-45deg, #0ea5e9, #006591, #006c49, #6cf8bb); background-size: 400% 400%; animation: gradient 15s ease infinite; }
+        @keyframes gradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    </style>
+</head>
+<body class="bg-animate min-h-screen flex items-center justify-center p-6">
+
+    <div class="glass max-w-md w-full rounded-[2.5rem] p-10 shadow-2xl">
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-extrabold text-[#006591] mb-2">Traveloop</h1>
+            <p class="text-slate-500 font-medium" id="form-subtitle">Welcome back! Please login.</p>
+        </div>
+
+        <form id="auth-form" class="space-y-5">
+            <div id="name-field" class="hidden">
+                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Full Name</label>
+                <input type="text" id="name" class="w-full px-6 py-4 rounded-2xl bg-white/50 border border-slate-200 focus:ring-2 focus:ring-[#0ea5e9] outline-none transition-all" placeholder="Alex Rivera"/>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Email Address</label>
+                <input type="email" id="email" required class="w-full px-6 py-4 rounded-2xl bg-white/50 border border-slate-200 focus:ring-2 focus:ring-[#0ea5e9] outline-none transition-all" placeholder="alex@example.com"/>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Password</label>
+                <input type="password" id="password" required class="w-full px-6 py-4 rounded-2xl bg-white/50 border border-slate-200 focus:ring-2 focus:ring-[#0ea5e9] outline-none transition-all" placeholder="••••••••"/>
+            </div>
+
+            <button type="submit" id="submit-btn" class="w-full py-4 bg-[#006591] text-white font-bold rounded-2xl shadow-xl shadow-blue-500/20 hover:opacity-90 active:scale-[0.98] transition-all">
+                <span id="btn-text">Sign In</span>
+            </button>
+        </form>
+
+        <div class="mt-8 text-center text-sm font-medium text-slate-500">
+            <span id="toggle-text">Don't have an account?</span>
+            <button onclick="toggleAuth()" class="text-[#0ea5e9] font-bold hover:underline ml-1" id="toggle-btn">Sign Up</button>
+        </div>
+    </div>
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        // ✅ Your Supabase credentials
+        const SUPABASE_URL = 'https://zibslyxkfixiqyuczrfp.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_nd9sX-EYwAqKmF5CjxTmIQ_wWjSYtgC';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let isLogin = true;
+
+        function toggleAuth() {
+            isLogin = !isLogin;
+            document.getElementById('name-field').classList.toggle('hidden');
+            document.getElementById('form-subtitle').textContent = isLogin ? 'Welcome back! Please login.' : 'Join the world of explorers.';
+            document.getElementById('btn-text').textContent = isLogin ? 'Sign In' : 'Create Account';
+            document.getElementById('toggle-text').textContent = isLogin ? "Don't have an account?" : "Already have an account?";
+            document.getElementById('toggle-btn').textContent = isLogin ? "Sign Up" : "Log In";
+        }
+
+        document.getElementById('auth-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('btn-text');
+
+            btn.textContent = 'Please wait...';
+            document.getElementById('submit-btn').disabled = true;
+
+            if (isLogin) {
+                // LOGIN
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+                if (error) {
+                    alert(error.message);
+                } else {
+                    localStorage.setItem('traveloop_user', JSON.stringify(data.user));
+                    window.location.href = 'dashboard.html';
+                }
+            } else {
+                // SIGNUP — Supabase sends verification email automatically
+                const { data, error } = await supabase.auth.signUp({ email, password });
+
+                if (error) {
+                    alert(error.message);
+                } else {
+                    alert('✅ Account created! Check your email to verify your account.');
+                    toggleAuth(); // switch back to login
+                }
+            }
+
+            btn.textContent = isLogin ? 'Sign In' : 'Create Account';
+            document.getElementById('submit-btn').disabled = false;
+        });
+    </script>
+</body>
+</html>

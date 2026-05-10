@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "background": "#f7f9fb",
+                    "error-container": "#ffdad6",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary-container": "#4d2b00",
+                    "on-tertiary-fixed-variant": "#693c00",
+                    "tertiary": "#8a5100",
+                    "on-secondary-container": "#00714d",
+                    "outline-variant": "#bec8d2",
+                    "surface-container-low": "#f2f4f6",
+                    "primary-fixed-dim": "#89ceff",
+                    "on-surface": "#191c1e",
+                    "error": "#ba1a1a",
+                    "surface-dim": "#d8dadc",
+                    "on-secondary-fixed-variant": "#005236",
+                    "outline": "#6e7881",
+                    "on-background": "#191c1e",
+                    "on-tertiary-fixed": "#2c1600",
+                    "on-primary": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "primary-fixed": "#c9e6ff",
+                    "on-primary-container": "#003751",
+                    "primary": "#006591",
+                    "secondary-fixed-dim": "#4edea3",
+                    "inverse-surface": "#2d3133",
+                    "inverse-on-surface": "#eff1f3",
+                    "on-tertiary": "#ffffff",
+                    "surface-variant": "#e0e3e5",
+                    "tertiary-container": "#de8712",
+                    "surface-bright": "#f7f9fb",
+                    "inverse-primary": "#89ceff",
+                    "on-error": "#ffffff",
+                    "surface": "#f7f9fb",
+                    "on-primary-fixed-variant": "#004c6e",
+                    "on-secondary-fixed": "#002113",
+                    "surface-container": "#eceef0",
+                    "secondary-container": "#6cf8bb",
+                    "surface-container-high": "#e6e8ea",
+                    "secondary": "#006c49",
+                    "surface-container-highest": "#e0e3e5",
+                    "secondary-fixed": "#6ffbbe",
+                    "surface-tint": "#006591",
+                    "on-secondary": "#ffffff",
+                    "on-surface-variant": "#3e4850",
+                    "tertiary-fixed-dim": "#ffb86e",
+                    "tertiary-fixed": "#ffdcbd",
+                    "primary-container": "#0ea5e9",
+                    "on-primary-fixed": "#001e2f"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-desktop": "40px",
+                    "sidebar-width": "280px",
+                    "margin-mobile": "20px",
+                    "container-max": "1440px",
+                    "unit": "8px",
+                    "gutter": "24px"
+            },
+            "fontFamily": {
+                    "display-lg": ["Plus Jakarta Sans"],
+                    "headline-lg": ["Plus Jakarta Sans"],
+                    "body-lg": ["Inter"],
+                    "body-md": ["Inter"],
+                    "headline-lg-mobile": ["Plus Jakarta Sans"],
+                    "label-sm": ["Inter"],
+                    "title-md": ["Plus Jakarta Sans"]
+            },
+            "fontSize": {
+                    "display-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "label-sm": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "title-md": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1.5px solid rgba(255, 255, 255, 0.3);
+        }
+        .hero-gradient {
+            background: linear-gradient(rgba(0, 101, 145, 0.1), rgba(0, 101, 145, 0.05));
+        }
+    </style>
+</head>
+<body class="bg-background font-body-md text-on-background min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
+<div class="absolute inset-0 z-0">
+<img class="w-full h-full object-cover" data-alt="Beach paradise" src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=900&fit=crop"/>
+<div class="absolute inset-0 bg-white/10 backdrop-blur-[2px]"></div>
+</div>
+<main class="relative z-10 w-full max-w-[1100px] grid grid-cols-1 md:grid-cols-2 glass-panel rounded-xl shadow-2xl overflow-hidden min-h-[640px]">
+<section class="hidden md:flex flex-col justify-between p-12 bg-cover bg-center relative overflow-hidden">
+<div class="absolute inset-0 bg-primary/20 mix-blend-overlay"></div>
+<div class="relative z-10">
+<div class="flex items-center gap-3 mb-8">
+<span class="material-symbols-outlined text-primary text-4xl" style="font-variation-settings: 'FILL' 1;">travel_explore</span>
+<h1 class="font-display-lg text-title-md text-primary tracking-tight">Traveloop</h1>
+</div>
+<h2 class="font-headline-lg text-headline-lg text-on-primary-container leading-tight">
+                    Start your next <br/>unforgettable <br/>journey today.
+                </h2>
+<p class="mt-6 text-on-surface-variant font-body-lg max-w-xs">
+                    Join thousands of travelers planning their perfect escapes with AI-driven itineraries.
+                </p>
+</div>
+</section>
+<section class="bg-white flex flex-col p-8 md:p-12">
+<div class="flex justify-between items-center mb-10">
+<div class="md:hidden flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">travel_explore</span>
+<span class="font-display-lg text-title-md text-primary">Traveloop</span>
+</div>
+<div class="flex bg-surface-container-low p-1 rounded-lg">
+    <button id="login-toggle" onclick="toggleAuthMode('login')" class="px-6 py-2 rounded-md font-label-sm text-primary bg-white shadow-sm transition-all">Login</button>
+    <button id="signup-toggle" onclick="toggleAuthMode('signup')" class="px-6 py-2 rounded-md font-label-sm text-on-surface-variant hover:text-primary transition-all">Signup</button>
+</div>
+</div>
+<div class="flex-grow flex flex-col justify-center">
+<header class="mb-8">
+    <h3 id="auth-title" class="font-headline-lg text-headline-lg text-on-surface mb-2">Welcome Back</h3>
+    <p id="auth-subtitle" class="text-on-surface-variant font-body-md">Please enter your details to access your trips.</p>
+</header>
+<div class="space-y-6">
+    <div class="space-y-2">
+        <label class="block font-label-sm text-on-surface-variant" for="email-input">Email Address</label>
+        <div class="relative group">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors">mail</span>
+            <input class="w-full pl-10 pr-4 py-3 bg-white border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container focus:border-primary outline-none transition-all placeholder:text-outline-variant font-body-md" id="email-input" placeholder="explorer@traveloop.com" type="email" required/>
+        </div>
+    </div>
+    
+    <div class="space-y-2">
+        <div class="flex justify-between items-center">
+            <label class="block font-label-sm text-on-surface-variant" for="password-input">Password</label>
+            <a id="forgot-link" class="text-label-sm text-primary hover:underline" href="#">Forgot Password?</a>
+        </div>
+        <div class="relative group">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors">lock</span>
+            <input class="w-full pl-10 pr-4 py-3 bg-white border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container focus:border-primary outline-none transition-all placeholder:text-outline-variant font-body-md" id="password-input" placeholder="Enter your password" type="password" required/>
+        </div>
+    </div>
+    
+    <div id="remember-row" class="flex items-center gap-2">
+        <input class="w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary-container" id="remember" type="checkbox"/>
+        <label class="font-label-sm text-on-surface-variant" for="remember">Remember me for 30 days</label>
+    </div>
+    
+    <button id="auth-submit-btn" onclick="handleAuthSubmit()" class="w-full bg-primary text-on-primary py-4 rounded-lg font-title-md hover:opacity-90 active:scale-[0.98] transition-all shadow-lg shadow-primary/20">
+        Sign In
+    </button>
+</div>
+<div class="mt-8">
+<div class="relative flex items-center mb-6">
+<div class="flex-grow border-t border-outline-variant"></div>
+<span class="px-4 text-label-sm text-outline font-medium">OR CONTINUE WITH</span>
+<div class="flex-grow border-t border-outline-variant"></div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<button class="flex items-center justify-center gap-3 py-3 px-4 border border-outline-variant rounded-lg hover:bg-surface-container-lowest transition-all font-label-sm">
+<img alt="Google" class="w-5 h-5" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1-rVLecALjcyQGucae0-_7ET0ddZOlnv_t7mgdWeMAneEe1KSWhcjC3aXdyc78Ww3VbH1H4TmFipSV1_zLC7UqjvfftYSC_CIHOTQxyp1zeu_ORR3f6R59A_AXSD2Ioj-vfa7rKG784xCNJE45ydNEc17qwhtSPnPUEDujx4h26ZPuZ-jN_QBZRP-krywA97ITfKTa_2AgeW7K2c5K4KLunY2zhxVdyTOC_XiUKGTDdnCgBsgRmI--3twIrXdO1_MLXXTGq6ElPLl"/>
+                            Google
+                        </button>
+<button class="flex items-center justify-center gap-3 py-3 px-4 border border-outline-variant rounded-lg hover:bg-surface-container-lowest transition-all font-label-sm">
+<span class="material-symbols-outlined text-on-surface" style="font-variation-settings: 'FILL' 1;">ios</span>
+                            Apple
+                        </button>
+</div>
+</div>
+</div>
+</section>
+</main>
+
+<script>
+    const SUPABASE_URL = 'https://zibslyxkfixiqyuczrfp.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_nd9sX-EYwAqKmF5CjxTmIQ_wWjSYtgC';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let authMode = 'login';
+
+    function toggleAuthMode(mode) {
+        authMode = mode;
+        const loginToggle = document.getElementById('login-toggle');
+        const signupToggle = document.getElementById('signup-toggle');
+        const authTitle = document.getElementById('auth-title');
+        const authSubtitle = document.getElementById('auth-subtitle');
+        const authSubmitBtn = document.getElementById('auth-submit-btn');
+        const forgotLink = document.getElementById('forgot-link');
+        const rememberRow = document.getElementById('remember-row');
+
+        if (mode === 'login') {
+            loginToggle.className = 'px-6 py-2 rounded-md font-label-sm text-primary bg-white shadow-sm transition-all';
+            signupToggle.className = 'px-6 py-2 rounded-md font-label-sm text-on-surface-variant hover:text-primary transition-all';
+            authTitle.textContent = 'Welcome Back';
+            authSubtitle.textContent = 'Please enter your details to access your trips.';
+            authSubmitBtn.textContent = 'Sign In';
+            forgotLink.classList.remove('hidden');
+            rememberRow.classList.remove('hidden');
+        } else {
+            signupToggle.className = 'px-6 py-2 rounded-md font-label-sm text-primary bg-white shadow-sm transition-all';
+            loginToggle.className = 'px-6 py-2 rounded-md font-label-sm text-on-surface-variant hover:text-primary transition-all';
+            authTitle.textContent = 'Create Account';
+            authSubtitle.textContent = 'Join Traveloop and start planning your perfect escape.';
+            authSubmitBtn.textContent = 'Sign Up & Verify Email';
+            forgotLink.classList.add('hidden');
+            rememberRow.classList.add('hidden');
+        }
+    }
+
+    async function handleAuthSubmit() {
+        console.log('Attempting auth submit...', authMode);
+        const email = document.getElementById('email-input').value;
+        const password = document.getElementById('password-input').value;
+
+        if (!email || !password) {
+            alert("Please enter both email and password!");
+            return;
+        }
+
+        try {
+            if (authMode === 'signup') {
+                const { data, error } = await supabaseClient.auth.signUp({
+                    email: email,
+                    password: password,
+                });
+
+                if (error) {
+                    alert("Error: " + error.message);
+                } else {
+                    alert("Success! Please check your email for the verification link.");
+                }
+            } else {
+                const { data, error } = await supabaseClient.auth.signInWithPassword({
+                    email: email,
+                    password: password,
+                });
+
+                if (error) {
+                    alert("Error: " + error.message);
+                } else {
+                    console.log('Login successful, user:', data.user);
+                    localStorage.setItem('traveloop_user', JSON.stringify(data.user));
+                    localStorage.setItem('traveloop_token', data.session.access_token);
+                    window.location.href = 'dashboard.html';
+                }
+            }
+        } catch (err) {
+            console.error('Auth Error:', err);
+            alert("An unexpected error occurred. Please check the console.");
+        }
+    }
+</script>
+</body></html>

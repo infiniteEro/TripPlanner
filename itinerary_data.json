@@ -1,0 +1,45 @@
+{
+  "tripName": "Royal Rajasthan & South India",
+  "dates": "Oct 12 – Oct 24, 2025",
+  "stops": [
+    {
+      "id": 1,
+      "city": "Agra",
+      "country": "India",
+      "arrival": "2025-10-12",
+      "departure": "2025-10-15",
+      "hotel": "The Oberoi Amarvilas",
+      "img": "https://images.unsplash.com/photo-1564507592333-c60657eea523?w=800&q=80",
+      "activities": [
+        { "id": 101, "name": "Taj Mahal Sunrise Visit", "time": "05:30", "category": "Culture" },
+        { "id": 102, "name": "Agra Fort Exploration", "time": "10:00", "category": "History" }
+      ]
+    },
+    {
+      "id": 2,
+      "city": "Munnar",
+      "country": "India",
+      "arrival": "2025-10-16",
+      "departure": "2025-10-20",
+      "hotel": "Tea County Resort",
+      "img": "https://images.unsplash.com/photo-1609766934234-1e59184dde0e?w=800&q=80",
+      "activities": [
+        { "id": 201, "name": "Tea Garden Trek", "time": "09:00", "category": "Nature" },
+        { "id": 202, "name": "Eravikulam National Park", "time": "14:00", "category": "Nature" }
+      ]
+    },
+    {
+      "id": 3,
+      "city": "Jaipur",
+      "country": "India",
+      "arrival": "2025-10-21",
+      "departure": "2025-10-24",
+      "hotel": "Rambagh Palace",
+      "img": "https://images.unsplash.com/photo-1477587458883-47145ed94245?w=800&q=80",
+      "activities": [
+        { "id": 301, "name": "Amber Fort Elephant Ride", "time": "08:30", "category": "Experience" },
+        { "id": 302, "name": "Hawa Mahal Photography", "time": "16:00", "category": "Culture" }
+      ]
+    }
+  ]
+}

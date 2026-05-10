@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Friends & Groups - Travelloop</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="api.js"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "background": "#f7f9fb",
+                      "surface-container-low": "#f2f4f6",
+                      "on-surface": "#191c1e",
+                      "primary": "#006591",
+                      "on-primary": "#ffffff",
+                      "secondary": "#006c49",
+                      "on-surface-variant": "#3e4850",
+                      "outline-variant": "#bec8d2"
+              },
+              "fontFamily": {
+                      "display-lg": ["Plus Jakarta Sans"],
+                      "body-md": ["Inter"]
+              }
+            }
+          }
+        }
+    </script>
+    <style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1.5px solid rgba(255, 255, 255, 0.3);
+        }
+        .friend-avatar {
+            position: relative;
+        }
+        .status-indicator {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid white;
+            background: #4edea3;
+        }
+    </style>
+</head>
+<body class="bg-background font-body-md text-on-background min-h-screen">
+
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full w-[280px] bg-white/70 backdrop-blur-xl border-r-[1.5px] border-white/30 shadow-sm flex flex-col py-8 z-50">
+    <div class="px-6 mb-10">
+        <h1 class="font-display-lg text-4xl font-bold text-primary">Traveloop</h1>
+    </div>
+    <nav class="flex-1 space-y-1">
+        <a class="flex items-center gap-3 text-on-surface-variant px-6 py-3 hover:bg-primary-container/10 hover:text-primary transition-all rounded-xl" href="dashboard.html">
+            <span class="material-symbols-outlined">dashboard</span>
+            <span>Dashboard</span>
+        </a>
+        <a class="flex items-center gap-3 text-on-surface-variant px-6 py-3 hover:bg-primary-container/10 hover:text-primary transition-all rounded-xl" href="itinerary.html">
+            <span class="material-symbols-outlined">event_note</span>
+            <span>Itinerary</span>
+        </a>
+        <a class="flex items-center gap-3 bg-primary/10 text-primary border-l-4 border-primary px-6 py-3 transition-all rounded-r-xl font-bold" href="#">
+            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">group</span>
+            <span>Friends</span>
+        </a>
+        <a class="flex items-center gap-3 text-on-surface-variant px-6 py-3 hover:bg-primary-container/10 hover:text-primary transition-all rounded-xl" href="budget.html">
+            <span class="material-symbols-outlined">payments</span>
+            <span>Budget</span>
+        </a>
+    </nav>
+</aside>
+
+<!-- TopNavBar -->
+<header class="fixed top-0 right-0 w-[calc(100%-280px)] h-16 px-10 bg-white/10 backdrop-blur-md flex justify-between items-center z-40">
+    <h2 class="text-xl font-bold text-primary">Travel Community</h2>
+    <div class="flex items-center gap-4">
+        <div class="relative">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+            <input oninput="searchFriends(this.value)" class="pl-9 pr-4 py-2 bg-white/50 border border-white/40 rounded-full text-xs w-64 focus:outline-none focus:ring-2 focus:ring-primary/20" placeholder="Find travel buddies..." type="text"/>
+        </div>
+        <button onclick="openCreateGroup()" class="bg-primary text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg shadow-primary/20 flex items-center gap-2 active:scale-95 transition-transform">
+            <span class="material-symbols-outlined text-sm">group_add</span>
+            Create Group
+        </button>
+    </div>
+</header>
+
+<main class="ml-[280px] pt-24 pb-16 px-10">
+    <div class="max-w-6xl mx-auto">
+        <!-- Active Groups Section -->
+        <section class="mb-12">
+            <header class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-on-surface">Active Trip Groups</h3>
+                <span id="group-count-badge" class="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold">0 Groups</span>
+            </header>
+            <div id="active-groups-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Group cards injected here -->
+                <div id="empty-groups" class="col-span-full py-12 flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-[2.5rem] text-slate-400">
+                    <span class="material-symbols-outlined text-4xl mb-2">group_off</span>
+                    <p class="font-bold">No active groups yet.</p>
+                    <p class="text-xs">Add friends below to start a trip!</p>
+                </div>
+            </div>
+        </section>
+
+        <header class="mb-10">
+            <h3 class="text-3xl font-bold text-on-surface">Your Travel Network</h3>
+            <p class="text-on-surface-variant mt-1">Connect with friends and plan shared adventures.</p>
+        </header>
+
+        <!-- Friends Grid -->
+        <div id="friends-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Friend cards injected here -->
+        </div>
+    </div>
+</main>
+
+<!-- PROFILE MODAL -->
+<div id="profile-modal" class="hidden fixed inset-0 bg-black/60 z-[100] flex items-center justify-center backdrop-blur-sm p-4">
+    <div class="bg-white rounded-[2rem] max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-2xl transform transition-all scale-95 opacity-0 flex flex-col" id="profile-modal-content">
+        <!-- Header Image -->
+        <div class="h-40 bg-gradient-to-r from-primary to-secondary relative flex-shrink-0">
+            <button onclick="closeProfile()" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/20 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/40 transition-all">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        
+        <div class="px-8 pb-8 relative flex-1 overflow-y-auto">
+            <!-- Profile Info Overlap -->
+            <div class="-mt-16 mb-6 flex items-end gap-6">
+                <div class="w-32 h-32 rounded-[2rem] border-4 border-white overflow-hidden bg-white shadow-xl">
+                    <img id="prof-img" src="" class="w-full h-full object-cover"/>
+                </div>
+                <div class="pb-2">
+                    <h4 id="prof-name" class="text-3xl font-bold text-on-surface">...</h4>
+                    <p id="prof-handle" class="text-primary font-bold">@handle</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-4 mb-8 bg-surface-container-low p-4 rounded-3xl">
+                <div class="text-center">
+                    <p id="prof-countries" class="text-xl font-bold text-on-surface">0</p>
+                    <p class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest">Countries</p>
+                </div>
+                <div class="text-center border-x border-outline-variant">
+                    <p id="prof-trips" class="text-xl font-bold text-on-surface">0</p>
+                    <p class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest">Trips</p>
+                </div>
+                <div class="text-center">
+                    <p id="prof-followers" class="text-xl font-bold text-on-surface">0</p>
+                    <p class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest">Followers</p>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <div>
+                    <h5 class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-3">About</h5>
+                    <p id="prof-bio" class="text-on-surface-variant leading-relaxed">...</p>
+                </div>
+
+                <div>
+                    <h5 class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-4">Past Trips</h5>
+                    <div id="prof-past-trips" class="grid grid-cols-2 gap-4">
+                        <!-- Past trips cards -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="p-6 border-t border-outline-variant flex gap-4 bg-white flex-shrink-0">
+            <button class="flex-1 py-4 bg-primary text-white font-bold rounded-2xl shadow-lg hover:opacity-90 transition-all flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-sm">mail</span>
+                Message
+            </button>
+            <button class="flex-1 py-4 border border-outline-variant text-on-surface font-bold rounded-2xl hover:bg-surface-container-low transition-all">
+                Invite to Trip
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- NOTIFICATION -->
+<div id="notification" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-on-surface text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-3 transform translate-y-20 transition-all z-[200]">
+    <span class="material-symbols-outlined text-secondary">verified</span>
+    <span id="notif-text" class="text-sm font-bold">Action successful</span>
+</div>
+
+<!-- GROUP PLANNER PANEL -->
+<div id="group-panel" class="fixed right-8 bottom-8 w-80 glass-card rounded-[2.5rem] shadow-2xl z-[60] flex flex-col transform translate-y-[120%] transition-all duration-500 overflow-hidden">
+    <div class="p-6 bg-primary text-white flex justify-between items-center">
+        <h4 class="font-bold">Trip Planner</h4>
+        <button onclick="toggleGroupPanel(false)" class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40"><span class="material-symbols-outlined text-sm">close</span></button>
+    </div>
+    
+    <div class="p-6 space-y-6 flex-1 overflow-y-auto max-h-[60vh]">
+        <div>
+            <label class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 block">Trip Name</label>
+            <input id="trip-name" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-primary/20" placeholder="e.g. Goa Vibes 🌴"/>
+        </div>
+        
+        <div>
+            <label class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 block">Group Members</label>
+            <div id="group-members-list" class="space-y-3">
+                <!-- Members will be injected here -->
+            </div>
+        </div>
+        
+        <div id="shared-items-section" class="pt-4 border-t border-slate-100 hidden">
+            <label class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 block">Shared Gear List</label>
+            <div id="shared-items-list" class="space-y-2">
+                <!-- Shared items will be injected here -->
+            </div>
+        </div>
+    </div>
+    
+    <div class="p-6 border-t border-slate-100 bg-slate-50">
+        <button onclick="launchTrip()" class="w-full py-4 bg-secondary text-white font-bold rounded-2xl shadow-lg hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined">rocket_launch</span>
+            Launch Trip
+        </button>
+    </div>
+</div>
+
+<!-- Group Selection Modal -->
+<div id="group-select-modal" class="hidden fixed inset-0 bg-black/60 z-[110] flex items-center justify-center backdrop-blur-sm p-4">
+    <div class="bg-white rounded-[2.5rem] p-8 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-300">
+        <h4 class="text-xl font-bold text-on-surface mb-2">Add to Group</h4>
+        <p class="text-xs text-on-surface-variant mb-6">Choose where to add <span id="target-friend-name" class="font-bold text-primary"></span>:</p>
+        
+        <div class="space-y-3">
+            <button onclick="startNewGroupFromModal()" class="w-full py-4 bg-primary text-white font-bold rounded-2xl flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all">
+                <span class="material-symbols-outlined">add_circle</span>
+                New Trip Plan
+            </button>
+            
+            <div id="existing-groups-list" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                <!-- Existing groups injected here -->
+            </div>
+        </div>
+        
+        <button onclick="closeGroupSelect()" class="mt-6 w-full py-3 text-slate-400 font-bold text-xs hover:text-slate-600">Cancel</button>
+    </div>
+</div>
+
+<script>
+    let friends = [];
+
+    async function init() {
+        const response = await fetch('friends_data.json');
+        friends = await response.json();
+        renderFriends(friends);
+    }
+
+    function renderFriends(list) {
+        const grid = document.getElementById('friends-grid');
+        grid.innerHTML = list.map(friend => {
+            const isAdded = currentGroup.find(f => f.id === friend.id);
+            const btnClass = isAdded ? 'bg-secondary text-white' : 'bg-secondary/10 text-secondary';
+            const btnIcon = isAdded ? 'check' : 'group_add';
+            
+            return `
+                <div class="glass-card p-6 rounded-[2rem] hover:shadow-2xl transition-all cursor-pointer group" onclick="viewProfile(${friend.id})">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-16 h-16 rounded-2xl overflow-hidden friend-avatar">
+                            <img src="${friend.avatar}" class="w-full h-full object-cover"/>
+                            <div class="status-indicator"></div>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-on-surface group-hover:text-primary transition-colors">${friend.name}</h4>
+                            <p class="text-xs text-on-surface-variant">${friend.handle}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-wrap gap-2 mb-6">
+                        ${friend.tags.map(tag => `
+                            <span class="px-3 py-1 bg-surface-container-low text-[10px] font-bold rounded-full text-on-surface-variant">${tag}</span>
+                        `).join('')}
+                    </div>
+                    
+                    <div class="flex gap-2">
+                        <button class="flex-1 py-3 border border-primary/20 text-primary text-xs font-bold rounded-xl hover:bg-primary hover:text-white transition-all">
+                            View Profile
+                        </button>
+                        <button id="add-btn-${friend.id}" onclick="event.stopPropagation(); addToGroup(${friend.id})" class="px-4 py-3 ${btnClass} hover:bg-secondary hover:text-white rounded-xl transition-all" title="Add to Group">
+                            <span class="material-symbols-outlined text-sm">${btnIcon}</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function viewProfile(id) {
+        const f = friends.find(x => x.id === id);
+        document.getElementById('prof-img').src = f.avatar;
+        document.getElementById('prof-name').textContent = f.name;
+        document.getElementById('prof-handle').textContent = f.handle;
+        document.getElementById('prof-countries').textContent = f.stats.countries;
+        document.getElementById('prof-trips').textContent = f.stats.trips;
+        document.getElementById('prof-followers').textContent = f.stats.followers;
+        document.getElementById('prof-bio').textContent = f.bio;
+        
+        const tripsGrid = document.getElementById('prof-past-trips');
+        tripsGrid.innerHTML = f.pastTrips.map(trip => `
+            <div class="rounded-2xl overflow-hidden bg-surface-container-low group/trip h-32 relative">
+                <img src="${trip.img}" class="w-full h-full object-cover grayscale group-hover/trip:grayscale-0 transition-all"/>
+                <div class="absolute inset-0 bg-black/40 flex flex-col justify-end p-3">
+                    <p class="text-white font-bold text-sm">${trip.city}</p>
+                    <p class="text-white/60 text-[10px]">${trip.date}</p>
+                </div>
+            </div>
+        `).join('');
+
+        const modal = document.getElementById('profile-modal');
+        const content = document.getElementById('profile-modal-content');
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            content.classList.remove('scale-95', 'opacity-0');
+            content.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+
+    function closeProfile() {
+        const modal = document.getElementById('profile-modal');
+        const content = document.getElementById('profile-modal-content');
+        content.classList.remove('scale-100', 'opacity-100');
+        content.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+    }
+
+    function searchFriends(val) {
+        const filtered = friends.filter(f => 
+            f.name.toLowerCase().includes(val.toLowerCase()) || 
+            f.handle.toLowerCase().includes(val.toLowerCase()) ||
+            f.tags.some(t => t.toLowerCase().includes(val.toLowerCase()))
+        );
+        renderFriends(filtered);
+    }
+
+    let currentGroup = [];
+    let targetFriendId = null;
+
+    function addToGroup(id) {
+        const friend = friends.find(f => f.id === id);
+        targetFriendId = id;
+        
+        const existingGroups = JSON.parse(localStorage.getItem('trip_groups') || '[]');
+        
+        if (existingGroups.length > 0) {
+            // Ask user: New or Existing?
+            openGroupSelect(friend, existingGroups);
+        } else {
+            // No existing groups, just start new draft
+            toggleToNewGroup(id);
+        }
+    }
+
+    function openGroupSelect(friend, groups) {
+        const modal = document.getElementById('group-select-modal');
+        const list = document.getElementById('existing-groups-list');
+        document.getElementById('target-friend-name').textContent = friend.name;
+        
+        list.innerHTML = groups.map(g => `
+            <button onclick="addToExisting(${g.id})" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-between group hover:border-primary/30 transition-all">
+                <span class="font-bold text-xs text-slate-700">${g.name}</span>
+                <span class="text-[9px] bg-primary/10 text-primary px-2 py-1 rounded-md uppercase">Add Here</span>
+            </button>
+        `).join('');
+        
+        modal.classList.remove('hidden');
+    }
+
+    function closeGroupSelect() {
+        document.getElementById('group-select-modal').classList.add('hidden');
+    }
+
+    function startNewGroupFromModal() {
+        toggleToNewGroup(targetFriendId);
+        closeGroupSelect();
+    }
+
+    function addToExisting(groupId) {
+        let groups = JSON.parse(localStorage.getItem('trip_groups') || '[]');
+        const gIdx = groups.findIndex(g => g.id === groupId);
+        const friend = friends.find(f => f.id === targetFriendId);
+        
+        if (gIdx !== -1) {
+            // Check if already in group
+            if (groups[gIdx].members.find(m => m.id === targetFriendId)) {
+                showNotification(`${friend.name} is already in this group!`);
+            } else {
+                groups[gIdx].members.push({ ...friend, status: 'pending' });
+                localStorage.setItem('trip_groups', JSON.stringify(groups));
+                renderActiveGroups();
+                showNotification(`Added ${friend.name} to "${groups[gIdx].name}"! ✈️`);
+            }
+        }
+        closeGroupSelect();
+    }
+
+    function toggleToNewGroup(id) {
+        const friend = friends.find(f => f.id === id);
+        const btn = document.getElementById(`add-btn-${id}`);
+        
+        if (currentGroup.find(f => f.id === id)) {
+            removeFromGroup(id);
+            return;
+        }
+        
+        // Mock shared items for members
+        const items = {
+            'Rosy': ['DSLR Camera', 'Memory Cards', 'Instax Cam'],
+            'Varun': ['Power Bank (20k)', 'First Aid Kit', 'Swiss Knife'],
+            'Maya': ['Water Purifier', 'Trail Map', 'Climbing Rope']
+        };
+        
+        friend.sharedItems = items[friend.name] || ['Personal Gear'];
+        currentGroup.push(friend);
+        
+        if(btn) {
+            btn.classList.remove('bg-secondary/10', 'text-secondary');
+            btn.classList.add('bg-secondary', 'text-white');
+            btn.innerHTML = '<span class="material-symbols-outlined text-sm">check</span>';
+        }
+        
+        updateGroupUI();
+        toggleGroupPanel(true);
+        showNotification(`Added ${friend.name} to draft group! 🚀`);
+    }
+
+    function updateGroupUI() {
+        const list = document.getElementById('group-members-list');
+        const itemsList = document.getElementById('shared-items-list');
+        const sharedSection = document.getElementById('shared-items-section');
+        
+        list.innerHTML = currentGroup.map(f => `
+            <div class="flex items-center gap-3 bg-white p-2 rounded-2xl border border-slate-100 animate-in fade-in slide-in-from-right-4 duration-300">
+                <img src="${f.avatar}" class="w-8 h-8 rounded-full object-cover"/>
+                <div class="flex-1">
+                    <span class="text-xs font-bold text-slate-700 block">${f.name}</span>
+                    <span class="text-[9px] text-primary uppercase font-bold">In Draft Group</span>
+                </div>
+                <button onclick="removeFromGroup(${f.id})" class="text-slate-300 hover:text-error"><span class="material-symbols-outlined text-sm">remove_circle</span></button>
+            </div>
+        `).join('');
+
+        if (currentGroup.length > 0) {
+            sharedSection.classList.remove('hidden');
+            itemsList.innerHTML = currentGroup.map(f => `
+                <div class="space-y-1">
+                    <p class="text-[10px] font-bold text-secondary">${f.name}'s Gear:</p>
+                    <div class="flex flex-wrap gap-1">
+                        ${f.sharedItems.map(i => `<span class="px-2 py-0.5 bg-secondary/5 text-secondary text-[9px] rounded-md border border-secondary/10">${i}</span>`).join('')}
+                    </div>
+                </div>
+            `).join('<div class="h-2"></div>');
+        } else {
+            sharedSection.classList.add('hidden');
+            toggleGroupPanel(false);
+        }
+    }
+
+    function removeFromGroup(id) {
+        currentGroup = currentGroup.filter(f => f.id !== id);
+        
+        // Reset button on card
+        const btn = document.getElementById(`add-btn-${id}`);
+        if(btn) {
+            btn.classList.add('bg-secondary/10', 'text-secondary');
+            btn.classList.remove('bg-secondary', 'text-white');
+            btn.innerHTML = '<span class="material-symbols-outlined text-sm">group_add</span>';
+        }
+        
+        updateGroupUI();
+    }
+
+    function toggleGroupPanel(show) {
+        const panel = document.getElementById('group-panel');
+        if (show) panel.classList.remove('translate-y-[120%]');
+        else panel.classList.add('translate-y-[120%]');
+    }
+
+    function launchTrip() {
+        const name = document.getElementById('trip-name').value || "New Adventure";
+        const newGroup = {
+            id: Date.now(),
+            name: name,
+            members: currentGroup.map(f => ({
+                ...f,
+                status: 'pending' // Initial status
+            })),
+            timestamp: new Date().toLocaleDateString()
+        };
+        
+        saveGroup(newGroup);
+        
+        // Reset card buttons
+        currentGroup.forEach(f => {
+            const btn = document.getElementById(`add-btn-${f.id}`);
+            if(btn) {
+                btn.classList.add('bg-secondary/10', 'text-secondary');
+                btn.classList.remove('bg-secondary', 'text-white');
+                btn.innerHTML = '<span class="material-symbols-outlined text-sm">group_add</span>';
+            }
+        });
+
+        currentGroup = [];
+        document.getElementById('trip-name').value = '';
+        updateGroupUI();
+        toggleGroupPanel(false);
+        renderActiveGroups();
+        showNotification(`Trip "${name}" launched! Invitations sent. 🚀`);
+    }
+
+    function saveGroup(group) {
+        let groups = JSON.parse(localStorage.getItem('trip_groups') || '[]');
+        groups.push(group);
+        localStorage.setItem('trip_groups', JSON.stringify(groups));
+    }
+
+    function renderActiveGroups() {
+        const groups = JSON.parse(localStorage.getItem('trip_groups') || '[]');
+        const grid = document.getElementById('active-groups-grid');
+        const empty = document.getElementById('empty-groups');
+        const badge = document.getElementById('group-count-badge');
+        
+        badge.textContent = `${groups.length} Group${groups.length !== 1 ? 's' : ''}`;
+        
+        if (groups.length === 0) {
+            grid.innerHTML = ''; // Clear the grid
+            empty.classList.remove('hidden');
+            return;
+        }
+        empty.classList.add('hidden');
+        
+        grid.innerHTML = groups.map(g => `
+            <div class="glass-card p-6 rounded-[2.5rem] shadow-lg border border-primary/10 flex flex-col h-full">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h4 class="font-bold text-lg text-primary">${g.name}</h4>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">${g.timestamp}</p>
+                    </div>
+                    <button onclick="deleteGroup(${g.id})" class="text-slate-300 hover:text-error"><span class="material-symbols-outlined">delete</span></button>
+                </div>
+                
+                <div class="space-y-3 flex-1">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Members Status</p>
+                    ${g.members.map(m => `
+                        <div class="flex items-center justify-between bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                            <div class="flex items-center gap-3">
+                                <img src="${m.avatar}" class="w-8 h-8 rounded-full object-cover"/>
+                                <span class="text-xs font-bold text-slate-700">${m.name}</span>
+                            </div>
+                            <div class="flex gap-2">
+                                ${m.status === 'pending' ? `
+                                    <button onclick="updateMemberStatus(${g.id}, ${m.id}, 'accepted')" class="px-2 py-1 bg-green-100 text-green-600 text-[9px] font-bold rounded-lg hover:bg-green-600 hover:text-white transition-all">Accept</button>
+                                    <button onclick="updateMemberStatus(${g.id}, ${m.id}, 'rejected')" class="px-2 py-1 bg-red-100 text-red-600 text-[9px] font-bold rounded-lg hover:bg-red-600 hover:text-white transition-all">Reject</button>
+                                ` : `
+                                    <span class="px-2 py-1 ${m.status === 'accepted' ? 'bg-secondary text-white' : 'bg-red-500 text-white'} text-[9px] font-bold rounded-lg uppercase">${m.status}</span>
+                                `}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <button class="mt-6 w-full py-3 bg-primary/10 text-primary font-bold text-xs rounded-xl hover:bg-primary hover:text-white transition-all">
+                    View Group Chat
+                </button>
+            </div>
+        `).join('');
+    }
+
+    function updateMemberStatus(groupId, memberId, status) {
+        let groups = JSON.parse(localStorage.getItem('trip_groups') || '[]');
+        const gIdx = groups.findIndex(g => g.id === groupId);
+        if (gIdx !== -1) {
+            const mIdx = groups[gIdx].members.findIndex(m => m.id === memberId);
+            if (mIdx !== -1) {
+                groups[gIdx].members[mIdx].status = status;
+                localStorage.setItem('trip_groups', JSON.stringify(groups));
+                renderActiveGroups();
+                showNotification(`Member ${status}!`);
+            }
+        }
+    }
+
+    function deleteGroup(id) {
+        let groups = JSON.parse(localStorage.getItem('trip_groups') || '[]');
+        groups = groups.filter(g => g.id !== id);
+        localStorage.setItem('trip_groups', JSON.stringify(groups));
+        renderActiveGroups();
+    }
+
+    renderActiveGroups();
+    init();
+</script>
+</body>
+</html>

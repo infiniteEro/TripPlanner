@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>India Travel Route Planner</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:#0a0f1e; --surface:#111827; --surface2:#1a2235;
+  --border:rgba(255,255,255,0.09);
+  --accent:#f97316; --accent2:#3b82f6; --gold:#fbbf24;
+  --text:#f1f5f9; --muted:#94a3b8;
+  --green:#10b981; --red:#ef4444; --purple:#8b5cf6;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;z-index:0;
+  background-image:linear-gradient(rgba(59,130,246,0.03) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(59,130,246,0.03) 1px,transparent 1px);
+  background-size:60px 60px;pointer-events:none;}
+.app{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:24px 18px;}
+
+/* HEADER */
+header{text-align:center;margin-bottom:36px;padding-top:16px;}
+.tag{display:inline-block;background:rgba(249,115,22,.15);border:1px solid rgba(249,115,22,.35);
+  color:var(--accent);border-radius:100px;padding:4px 16px;font-size:11px;
+  letter-spacing:2px;text-transform:uppercase;font-weight:600;margin-bottom:14px;}
+header h1{font-family:'Syne',sans-serif;font-size:clamp(26px,5vw,48px);font-weight:800;
+  background:linear-gradient(135deg,#f1f5f9 0%,#94a3b8 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;}
+header h1 span{background:linear-gradient(135deg,var(--accent) 0%,var(--gold) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+header p{color:var(--muted);font-size:14px;margin-top:10px;}
+
+/* SEARCH PANEL */
+.search-panel{background:var(--surface);border:1px solid var(--border);border-radius:18px;
+  padding:24px 28px;margin-bottom:24px;}
+.search-row{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;}
+.field{flex:1;min-width:180px;}
+.field label{display:block;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--muted);font-weight:600;margin-bottom:8px;}
+.sel-wrap{position:relative;}
+.sel-wrap::after{content:'▾';position:absolute;right:14px;top:50%;transform:translateY(-50%);
+  color:var(--muted);pointer-events:none;font-size:12px;}
+select{width:100%;padding:13px 38px 13px 14px;background:var(--surface2);
+  border:1.5px solid var(--border);border-radius:11px;color:var(--text);
+  font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer;
+  -webkit-appearance:none;appearance:none;outline:none;transition:border-color .2s;}
+select:focus{border-color:var(--accent2);}
+select option{background:#1a2235;color:#f1f5f9;}
+
+.btn-swap{background:var(--surface2);border:1.5px solid var(--border);border-radius:11px;
+  width:46px;height:46px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  color:var(--muted);font-size:20px;transition:all .25s;flex-shrink:0;}
+.btn-swap:hover{border-color:var(--accent);color:var(--accent);transform:rotate(180deg);}
+.btn-plan{background:linear-gradient(135deg,var(--accent) 0%,#ea580c 100%);border:none;
+  border-radius:11px;padding:13px 32px;color:#fff;font-family:'Syne',sans-serif;
+  font-weight:700;font-size:15px;cursor:pointer;transition:all .2s;white-space:nowrap;
+  box-shadow:0 4px 18px rgba(249,115,22,.35);flex-shrink:0;}
+.btn-plan:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(249,115,22,.45);}
+.btn-plan:active{transform:translateY(0);}
+
+/* LAYOUT */
+.main-grid{display:grid;grid-template-columns:1fr 420px;gap:22px;}
+
+/* MAP */
+.map-wrap{border-radius:18px;overflow:hidden;border:1px solid var(--border);position:relative;}
+#map{height:500px;width:100%;}
+
+/* Distance badge on map */
+.dist-badge{position:absolute;bottom:14px;left:14px;z-index:1000;
+  background:rgba(10,15,30,.92);backdrop-filter:blur(10px);
+  border:1.5px solid rgba(66,133,244,.5);border-radius:12px;padding:10px 18px;display:none;}
+.dist-badge .dk{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#4285f4;}
+.dist-badge .dr{font-size:12px;color:var(--muted);margin-top:2px;}
+
+/* RESULTS COL */
+.results-col{display:flex;flex-direction:column;gap:14px;max-height:700px;overflow-y:auto;padding-right:2px;}
+.results-col::-webkit-scrollbar{width:3px;}
+.results-col::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px;}
+
+/* STAT STRIP */
+.stat-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.stat-box{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:14px;text-align:center;}
+.stat-box .si{font-size:20px;margin-bottom:4px;}
+.stat-box .sv{font-family:'Syne',sans-serif;font-size:19px;font-weight:800;}
+.stat-box .sl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+
+/* SEC TITLE */
+.sec-title{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:1.8px;}
+
+/* TRANSPORT CARD */
+.t-card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;transition:border-color .2s,transform .15s;}
+.t-card:hover{border-color:rgba(255,255,255,.2);transform:translateX(3px);}
+.t-card.best-card{border-color:rgba(249,115,22,.5);background:rgba(249,115,22,.04);}
+.tbar{height:4px;}
+.t-card.flight .tbar{background:#3b82f6;}
+.t-card.train  .tbar{background:#10b981;}
+.t-card.bus    .tbar{background:#fbbf24;}
+.t-card.car    .tbar{background:#8b5cf6;}
+.t-card.bike   .tbar{background:#ef4444;}
+.t-body{padding:14px 16px;}
+.t-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;}
+.t-left{display:flex;align-items:center;gap:10px;}
+.t-icon{font-size:26px;line-height:1;}
+.t-name{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;}
+.t-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:2px;}
+.badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;white-space:nowrap;}
+.b-rec{background:var(--accent);color:#fff;}
+.b-fast{background:var(--accent2);color:#fff;}
+.b-cheap{background:var(--green);color:#fff;}
+.b-val{background:var(--purple);color:#fff;}
+
+.t-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;}
+.t-cell{background:var(--surface2);border-radius:8px;padding:9px 10px;}
+.t-cell .cl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px;}
+.t-cell .cv{font-size:13px;font-weight:500;}
+.t-cell .cv.blue{color:#4285f4;}
+.t-cell .cv.green{color:var(--green);}
+.t-cell .cv.orange{color:var(--accent);}
+.t-note{font-size:11px;color:var(--muted);padding-top:8px;border-top:1px solid var(--border);}
+
+/* SUB OPTIONS (train classes / flight types) */
+.sub-opts{border-top:1px solid var(--border);padding:12px 16px;display:flex;flex-direction:column;gap:2px;}
+.sub-head{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:8px;}
+.sub-row{display:flex;align-items:center;justify-content:space-between;
+  padding:7px 10px;border-radius:8px;background:var(--surface2);margin-bottom:4px;}
+.sub-row .sn{font-size:13px;font-weight:500;color:var(--text);}
+.sub-row .sr{display:flex;gap:14px;align-items:center;}
+.sub-row .st{font-size:12px;color:var(--muted);}
+.sub-row .sp{font-size:13px;font-weight:600;color:var(--green);}
+.best-pick{font-size:10px;background:rgba(16,185,129,.15);color:var(--green);
+  border:1px solid rgba(16,185,129,.3);border-radius:100px;padding:1px 7px;font-weight:600;margin-left:6px;}
+.sub-desc{font-size:11px;color:var(--muted);padding:0 10px 6px;}
+
+/* EMPTY */
+.empty{background:var(--surface);border:1.5px dashed var(--border);border-radius:16px;
+  padding:44px 22px;text-align:center;color:var(--muted);}
+.empty .ei{font-size:44px;margin-bottom:14px;opacity:.5;}
+.empty p{font-size:13px;line-height:1.85;}
+.empty strong{color:var(--text);}
+
+/* WEATHER / TIPS */
+.info-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px;}
+.info-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;}
+.info-box h4{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px;}
+.info-box p{font-size:13px;color:var(--muted);line-height:1.8;}
+.info-box strong{color:var(--text);}
+
+/* PLACES GRID */
+.places-sec{margin-top:26px;}
+.places-sec h2{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:14px;}
+.places-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px;}
+.p-chip{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  padding:14px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;gap:4px;}
+.p-chip:hover{border-color:rgba(249,115,22,.5);background:rgba(249,115,22,.05);transform:translateY(-2px);}
+.p-chip .pr{font-size:11px;color:var(--accent);font-weight:600;}
+.p-chip .pn{font-size:13px;font-weight:500;}
+.p-chip .ps{font-size:11px;color:var(--muted);}
+
+/* TOAST */
+.toast{position:fixed;bottom:22px;right:22px;background:var(--surface2);
+  border:1px solid var(--border);border-radius:12px;padding:11px 20px;
+  font-size:13px;z-index:9999;opacity:0;transform:translateY(8px);
+  transition:all .3s;pointer-events:none;max-width:280px;}
+.toast.show{opacity:1;transform:translateY(0);}
+
+@media(max-width:860px){
+  .main-grid{grid-template-columns:1fr;}
+  .results-col{max-height:none;}
+  .info-row{grid-template-columns:1fr;}
+}
+@media(max-width:560px){
+  .search-row{flex-direction:column;}
+  .btn-swap,.btn-plan{width:100%;}
+  .stat-strip{grid-template-columns:1fr 1fr;}
+}
+
+/* Back button */
+.back-btn {
+  position: fixed;
+  top: 24px;
+  left: 24px;
+  z-index: 100;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text);
+  font-size: 20px;
+  transition: all 0.2s;
+}
+.back-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateX(-3px);
+}
+</style>
+</head>
+<body>
+<div class="back-btn" onclick="window.location.href='dashboard.html'" title="Back to Dashboard">
+  ← 
+</div>
+<div class="app">
+
+  <header>
+    <div class="tag">India Travel Planner</div>
+    <h1>Explore <span>Incredible India</span></h1>
+    <p>Real distances &nbsp;·&nbsp; Google Maps style route &nbsp;·&nbsp; All transport options with prices</p>
+  </header>
+
+  <div class="search-panel">
+    <div class="search-row">
+      <div class="field">
+        <label>Starting Place</label>
+        <div class="sel-wrap">
+          <select id="fromSel">
+            <option value="">-- Choose starting place --</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-swap" id="swapBtn" title="Swap places">&#8644;</button>
+      <div class="field">
+        <label>Destination</label>
+        <div class="sel-wrap">
+          <select id="toSel">
+            <option value="">-- Choose destination --</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-plan" id="planBtn">Plan My Route &#8594;</button>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div class="map-wrap">
+      <div id="map"></div>
+      <div class="dist-badge" id="distBadge">
+        <div class="dk" id="badgeKm"></div>
+        <div class="dr" id="badgeRoute"></div>
+      </div>
+    </div>
+    <div class="results-col" id="resultsCol">
+      <div class="empty">
+        <div class="ei">🗺️</div>
+        <p>Choose a <strong>starting place</strong> and <strong>destination</strong> from the dropdowns above, then press <strong>Plan My Route</strong> to see:<br><br>
+        📍 Live route on the map<br>
+        📏 Exact distance in km<br>
+        ✈ Flight options &amp; airlines<br>
+        🚂 Train classes &amp; prices<br>
+        🚌 Bus, Car &amp; Bike options</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-row" id="infoRow" style="display:none">
+    <div class="info-box">
+      <h4>🌤 Weather at Destination</h4>
+      <p id="weatherTxt"></p>
+    </div>
+    <div class="info-box">
+      <h4>💡 Travel Tips</h4>
+      <p id="tipsTxt"></p>
+    </div>
+  </div>
+
+  <div class="places-sec">
+    <h2>All Destinations</h2>
+    <div class="places-grid" id="placesGrid"></div>
+  </div>
+</div>
+
+<div class="toast" id="toastEl"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+/* =========================================================
+   DATA
+========================================================= */
+var PLACES = [
+  { id:1, name:"Taj Mahal",          state:"Uttar Pradesh",    lat:27.1751, lng:78.0421,
+    weather:"Best Oct–Mar (15–25°C). Very hot Apr–Jun up to 40°C. Cool winters Dec–Feb.",
+    tips:"Book tickets online to avoid queues. Visit at sunrise. Carry valid photo ID. Nearest airport: Agra (AGR)." },
+  { id:2, name:"Manali",             state:"Himachal Pradesh", lat:32.2396, lng:77.1887,
+    weather:"Snowfall Nov–Feb. Pleasant Apr–Jun (10–25°C). Monsoon Jul–Sep — road closures possible.",
+    tips:"Carry warm layers even in summer. Rohtang Pass needs a permit. Book hotels early in peak (May–Jun) season." },
+  { id:3, name:"Dal Lake",           state:"Jammu & Kashmir",  lat:34.0837, lng:74.7973,
+    weather:"Best Apr–Oct. Snowfall in winters. Summer stays 20–30°C — ideal weather.",
+    tips:"Stay in a traditional houseboat. Shikara ride at sunrise is magical. Carry light woolens year-round." },
+  { id:4, name:"Munnar",             state:"Kerala",           lat:10.0889, lng:77.0595,
+    weather:"Pleasant year-round (15–25°C). Heavy monsoon Jun–Aug. Best travel window: Sep–May.",
+    tips:"Book tea plantation tours in advance. Morning fog on mountain roads — drive slowly. Nearest airport: Cochin (COK)." },
+  { id:5, name:"Jaipur City Palace", state:"Rajasthan",        lat:26.9258, lng:75.8237,
+    weather:"Best Oct–Mar (12–25°C). Scorching May–Jun (45°C+). Monsoon Jul–Sep.",
+    tips:"Combine with Hawa Mahal and Amber Fort. Bargain hard at local bazaars. Night markets are open till 10 PM." },
+  { id:6, name:"Baga Beach",         state:"Goa",              lat:15.5540, lng:73.7516,
+    weather:"Best Oct–Mar (27–32°C). Monsoon Jun–Sep — rough seas, most beach shacks close.",
+    tips:"Water sports available Oct–May only. Try local seafood at night shacks. Book rooms early for Dec–Jan peak." },
+  { id:7, name:"Ooty",               state:"Tamil Nadu",       lat:11.4102, lng:76.6950,
+    weather:"Cool all year (7–20°C). Peak tourist season Apr–Jun. Light drizzle most months.",
+    tips:"Ride the UNESCO Nilgiri Mountain Railway steam train. Visit Botanical Garden. Always carry a jacket." }
+];
+
+var EMOJIS = ["🕌","🏔","🌊","🌿","🏯","🏖","🚂"];
+
+var TRAIN_CLASSES = [
+  { name:"Sleeper (SL)",  mul:1.0, time_mul:1.0,  label:"Economy — most affordable, no AC" },
+  { name:"3rd AC (3A)",   mul:2.6, time_mul:1.0,  label:"Best value — AC + side berths included", best:true },
+  { name:"2nd AC (2A)",   mul:3.8, time_mul:0.98, label:"Comfortable — private berths, AC" },
+  { name:"1st AC (1A)",   mul:6.2, time_mul:0.96, label:"Premium — enclosed cabin, full privacy" }
+];
+
+var FLIGHT_TYPES = [
+  { name:"IndiGo / SpiceJet", mul:1.0, label:"Budget airlines — best price, no frills", best:true },
+  { name:"Air India",          mul:1.4, label:"Full-service — meals + checked baggage included" },
+  { name:"Vistara / Emirates", mul:3.2, label:"Business class — lie-flat seats, premium lounge" }
+];
+
+var MODES = [
+  { key:"flight", name:"Flight",     icon:"✈",  kmh:700, base:2200, pkm:5.2,  comfort:5,
+    minKm:400, note:"Fastest option. Add ~2.5 hrs total for airport check-in + boarding each side." },
+  { key:"train",  name:"Train",      icon:"🚂", kmh:72,  base:180,  pkm:0.85, comfort:3,
+    minKm:0,   note:"Most popular for Indian long-distance travel. Many daily trains on this route." },
+  { key:"bus",    name:"Bus",        icon:"🚌", kmh:52,  base:90,   pkm:0.48, comfort:2,
+    minKm:0,   note:"State bus is cheapest. Private AC sleeper buses cost ~2× but are far more comfortable." },
+  { key:"car",    name:"Car / Taxi", icon:"🚗", kmh:62,  base:600,  pkm:3.4,  comfort:4,
+    minKm:0,   note:"Door-to-door flexibility. Fuel ~₹105/L assumed, ~15 kmpl highway mileage." },
+  { key:"bike",   name:"Bike",       icon:"🏍", kmh:52,  base:120,  pkm:1.7,  comfort:2,
+    maxKm:500, note:"Road trip adventure! Fuel cost only. Best suited for distances under 500 km." }
+];
+
+/* =========================================================
+   HELPERS
+========================================================= */
+function haversine(a, b) {
+  var R = 6371;
+  var dLat = (b.lat - a.lat) * Math.PI / 180;
+  var dLng = (b.lng - a.lng) * Math.PI / 180;
+  var s = Math.sin(dLat/2)*Math.sin(dLat/2) +
+          Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*
+          Math.sin(dLng/2)*Math.sin(dLng/2);
+  return Math.round(R * 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1-s)));
+}
+
+function fmtTime(hrs) {
+  var h = Math.floor(hrs);
+  var m = Math.round((hrs - h) * 60);
+  if (m === 0) return h + " hrs";
+  if (h === 0) return m + " min";
+  return h + "h " + m + "m";
+}
+
+function el(tag, cls, html) {
+  var e = document.createElement(tag);
+  if (cls)  e.className = cls;
+  if (html !== undefined) e.innerHTML = html;
+  return e;
+}
+
+/* =========================================================
+   MAP
+========================================================= */
+var map = L.map("map", { zoomControl:true }).setView([22.5, 80], 5);
+
+L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+  attribution:"&copy; OpenStreetMap &copy; CARTO", maxZoom:18
+}).addTo(map);
+
+function pinIcon(emoji) {
+  return L.divIcon({
+    html: '<div style="font-size:22px;filter:drop-shadow(0 2px 6px rgba(0,0,0,.9))">' + emoji + '</div>',
+    className:"", iconSize:[28,28], iconAnchor:[14,14]
+  });
+}
+
+var mapPins = {};
+var routeLines = [];
+var midLabelMarker = null;
+
+PLACES.forEach(function(p, i) {
+  var m = L.marker([p.lat, p.lng], { icon: pinIcon(EMOJIS[i]) })
+    .addTo(map)
+    .bindPopup(
+      '<b style="font-size:14px;font-family:sans-serif">' + EMOJIS[i] + " " + p.name + "</b><br>" +
+      '<span style="color:#94a3b8;font-size:12px">' + p.state + "</span>"
+    );
+  mapPins[p.id] = m;
+});
+
+function clearRoute() {
+  routeLines.forEach(function(l){ map.removeLayer(l); });
+  routeLines = [];
+  if (midLabelMarker) { map.removeLayer(midLabelMarker); midLabelMarker = null; }
+}
+
+function drawRoute(from, to, km) {
+  clearRoute();
+  var pts = [[from.lat, from.lng], [to.lat, to.lng]];
+
+  /* White glow underneath (Google Maps style shadow) */
+  var glow = L.polyline(pts, { color:"#ffffff", weight:9, opacity:0.2,
+    lineJoin:"round", lineCap:"round" }).addTo(map);
+
+  /* Blue route line */
+  var line = L.polyline(pts, { color:"#4285f4", weight:5, opacity:1,
+    lineJoin:"round", lineCap:"round" }).addTo(map);
+
+  routeLines.push(glow, line);
+
+  /* Distance label at midpoint */
+  var midLat = (from.lat + to.lat) / 2;
+  var midLng = (from.lng + to.lng) / 2;
+
+  midLabelMarker = L.marker([midLat, midLng], {
+    icon: L.divIcon({
+      html: '<div style="' +
+              'background:rgba(10,15,30,.95);' +
+              'border:2px solid #4285f4;' +
+              'border-radius:8px;' +
+              'padding:5px 12px;' +
+              'white-space:nowrap;' +
+              'font-family:sans-serif;' +
+              'font-size:14px;' +
+              'font-weight:800;' +
+              'color:#4285f4;' +
+              'box-shadow:0 3px 10px rgba(0,0,0,.6)' +
+            '">' + km.toLocaleString() + " km</div>",
+      className:"", iconAnchor:[44, 18]
+    }),
+    interactive: false
+  }).addTo(map);
+
+  map.fitBounds([[from.lat, from.lng],[to.lat, to.lng]], { padding:[80,80] });
+
+  /* Distance badge at bottom-left */
+  var badge = document.getElementById("distBadge");
+  badge.style.display = "block";
+  document.getElementById("badgeKm").textContent = km.toLocaleString() + " km";
+  document.getElementById("badgeRoute").textContent = from.name + "  →  " + to.name;
+}
+
+/* =========================================================
+   POPULATE SELECTS
+========================================================= */
+var fromSel = document.getElementById("fromSel");
+var toSel   = document.getElementById("toSel");
+
+PLACES.forEach(function(p) {
+  var o1 = document.createElement("option");
+  o1.value = String(p.id);
+  o1.textContent = p.name + "  —  " + p.state;
+
+  var o2 = document.createElement("option");
+  o2.value = String(p.id);
+  o2.textContent = p.name + "  —  " + p.state;
+
+  fromSel.appendChild(o1);
+  toSel.appendChild(o2);
+});
+
+/* =========================================================
+   SWAP BUTTON
+========================================================= */
+document.getElementById("swapBtn").addEventListener("click", function() {
+  var tmp = fromSel.value;
+  fromSel.value = toSel.value;
+  toSel.value = tmp;
+  showToast("Places swapped ⇄");
+});
+
+/* =========================================================
+   PLAN ROUTE BUTTON  ← fully rewritten, no bugs
+========================================================= */
+document.getElementById("planBtn").addEventListener("click", function() {
+  var fv = fromSel.value;
+  var tv = toSel.value;
+
+  if (!fv || fv === "") { showToast("Please choose a starting place ⚠️"); return; }
+  if (!tv || tv === "") { showToast("Please choose a destination ⚠️"); return; }
+  if (fv === tv)        { showToast("Please pick two different places 😊"); return; }
+
+  var from = null, to = null;
+  for (var i = 0; i < PLACES.length; i++) {
+    if (PLACES[i].id === parseInt(fv)) from = PLACES[i];
+    if (PLACES[i].id === parseInt(tv)) to   = PLACES[i];
+  }
+  if (!from || !to) { showToast("Error finding places, try again"); return; }
+
+  var km = haversine(from, to);
+
+  /* Draw route on map */
+  drawRoute(from, to, km);
+
+  /* Render result cards */
+  buildResults(from, to, km);
+});
+
+/* =========================================================
+   BUILD RESULTS
+========================================================= */
+function buildResults(from, to, km) {
+  var col = document.getElementById("resultsCol");
+  col.innerHTML = "";
+
+  /* ── STAT STRIP ─────────────────────────── */
+  var trainHrs = km / 72;
+  var busHrs   = km / 52;
+  var minCost  = Math.round(90 + km * 0.48);
+
+  var strip = el("div","stat-strip");
+  strip.innerHTML =
+    '<div class="stat-box"><div class="si">📏</div>' +
+    '<div class="sv" style="color:var(--accent)">' + km.toLocaleString() + '<span style="font-size:12px"> km</span></div>' +
+    '<div class="sl">Distance</div></div>' +
+    '<div class="stat-box"><div class="si">🚂</div>' +
+    '<div class="sv" style="color:var(--green)">' + fmtTime(trainHrs) + '</div>' +
+    '<div class="sl">By Train</div></div>' +
+    '<div class="stat-box"><div class="si">💰</div>' +
+    '<div class="sv" style="color:var(--gold)">₹' + minCost.toLocaleString() + '</div>' +
+    '<div class="sl">Min Cost</div></div>';
+  col.appendChild(strip);
+
+  /* ── SECTION TITLE ──────────────────────── */
+  var secT = el("div","sec-title","Transport Options — " + from.name + " to " + to.name);
+  col.appendChild(secT);
+
+  /* ── FILTER + SCORE MODES ───────────────── */
+  var modes = MODES.filter(function(m) {
+    if (m.minKm && km < m.minKm) return false;
+    if (m.maxKm && km > m.maxKm) return false;
+    return true;
+  });
+
+  var options = modes.map(function(m) {
+    var hrs  = (m.key === "flight") ? (km / m.kmh) + 2.5 : km / m.kmh;
+    var cost = Math.round(m.base + km * m.pkm);
+    return { key:m.key, name:m.name, icon:m.icon, hrs:hrs, cost:cost,
+             comfort:m.comfort, note:m.note };
+  });
+
+  options.sort(function(a,b){ return a.cost - b.cost; });
+
+  var cheapKey = options[0].key;
+  var fastKey  = options.reduce(function(a,b){ return a.hrs < b.hrs ? a : b; }).key;
+  var recKey   = km >= 400 ? "flight" : "train";
+  /* if flight not available (< 400 km), fall back to train */
+  var recExists = options.some(function(o){ return o.key === recKey; });
+  if (!recExists) recKey = "train";
+
+  /* ── RENDER EACH CARD ───────────────────── */
+  options.forEach(function(opt) {
+    var isCheap = opt.key === cheapKey;
+    var isFast  = opt.key === fastKey;
+    var isRec   = opt.key === recKey;
+
+    var card = el("div", "t-card " + opt.key + (isRec ? " best-card" : ""));
+
+    /* top colour bar */
+    card.appendChild(el("div","tbar"));
+
+    var body = el("div","t-body");
+
+    /* badges */
+    var bHTML = "";
+    if (isRec)   bHTML += '<span class="badge b-rec">Recommended</span>';
+    if (isFast && !isRec) bHTML += '<span class="badge b-fast">Fastest</span>';
+    if (isCheap) bHTML += '<span class="badge b-cheap">Cheapest</span>';
+
+    /* sub-label */
+    var sub = "";
+    if (opt.key === "train")  sub = "Multiple classes — choose below";
+    if (opt.key === "flight") sub = "Budget to premium airlines below";
+    if (opt.key === "bus")    sub = "State bus · Private AC sleeper";
+    if (opt.key === "car")    sub = "Self-drive or hire a cab";
+    if (opt.key === "bike")   sub = "Fuel-only cost · road trip";
+
+    body.innerHTML =
+      '<div class="t-head">' +
+        '<div class="t-left">' +
+          '<div class="t-icon">' + opt.icon + '</div>' +
+          '<div><div class="t-name">' + opt.name + '</div>' +
+          '<div class="t-sub">' + sub + '</div></div>' +
+        '</div>' +
+        '<div class="badges">' + bHTML + '</div>' +
+      '</div>' +
+      '<div class="t-grid">' +
+        '<div class="t-cell"><div class="cl">Total Time</div><div class="cv blue">' + fmtTime(opt.hrs) + '</div></div>' +
+        '<div class="t-cell"><div class="cl">Est. Cost</div><div class="cv green">₹' + opt.cost.toLocaleString() + '</div></div>' +
+        '<div class="t-cell"><div class="cl">Comfort</div><div class="cv orange">' +
+          "★".repeat(opt.comfort) + "☆".repeat(5 - opt.comfort) +
+        '</div></div>' +
+      '</div>' +
+      '<div class="t-note">ℹ&nbsp;' + opt.note + '</div>';
+
+    card.appendChild(body);
+
+    /* ── TRAIN CLASSES ──────────────────── */
+    if (opt.key === "train") {
+      var so = el("div","sub-opts");
+      so.appendChild(el("div","sub-head","Choose your train class:"));
+
+      TRAIN_CLASSES.forEach(function(tc) {
+        var cCost = Math.round(opt.cost * tc.mul);
+        var cTime = fmtTime(opt.hrs * tc.time_mul);
+
+        var row = el("div","sub-row");
+        row.innerHTML =
+          '<div class="sn">' + tc.name +
+            (tc.best ? '<span class="best-pick">Best pick</span>' : '') +
+          '</div>' +
+          '<div class="sr">' +
+            '<span class="st">' + cTime + '</span>' +
+            '<span class="sp">₹' + cCost.toLocaleString() + '</span>' +
+          '</div>';
+        so.appendChild(row);
+        so.appendChild(el("div","sub-desc", tc.label));
+      });
+      card.appendChild(so);
+    }
+
+    /* ── FLIGHT TYPES ───────────────────── */
+    if (opt.key === "flight") {
+      var so2 = el("div","sub-opts");
+      so2.appendChild(el("div","sub-head","Airline options:"));
+
+      FLIGHT_TYPES.forEach(function(ft) {
+        var fCost = Math.round(opt.cost * ft.mul);
+
+        var row2 = el("div","sub-row");
+        row2.innerHTML =
+          '<div class="sn">' + ft.name +
+            (ft.best ? '<span class="best-pick">Best price</span>' : '') +
+          '</div>' +
+          '<div class="sr">' +
+            '<span class="st">' + fmtTime(opt.hrs) + '</span>' +
+            '<span class="sp">₹' + fCost.toLocaleString() + '</span>' +
+          '</div>';
+        so2.appendChild(row2);
+        so2.appendChild(el("div","sub-desc", ft.label));
+      });
+      card.appendChild(so2);
+    }
+
+    col.appendChild(card);
+  });
+
+  /* ── WEATHER + TIPS ─────────────────────── */
+  document.getElementById("weatherTxt").innerHTML =
+    "<strong>" + to.name + "</strong><br>" + to.weather;
+  document.getElementById("tipsTxt").textContent = to.tips;
+  document.getElementById("infoRow").style.display = "grid";
+
+  showToast("Route planned!  " + km.toLocaleString() + " km  🎉");
+}
+
+/* =========================================================
+   PLACES GRID
+========================================================= */
+var grid = document.getElementById("placesGrid");
+PLACES.forEach(function(p, i) {
+  var chip = el("div","p-chip");
+  chip.innerHTML =
+    '<div class="pr">#' + (i+1) + ' Rank</div>' +
+    '<div class="pn">' + EMOJIS[i] + " " + p.name + '</div>' +
+    '<div class="ps">' + p.state + '</div>';
+  chip.addEventListener("click", function() {
+    map.setView([p.lat, p.lng], 10);
+    if (mapPins[p.id]) mapPins[p.id].openPopup();
+    showToast("Zoomed to " + p.name + " 📍");
+  });
+  grid.appendChild(chip);
+});
+
+/* =========================================================
+   TOAST
+========================================================= */
+var _toastTimer = null;
+function showToast(msg) {
+  var t = document.getElementById("toastEl");
+  t.textContent = msg;
+  t.classList.add("show");
+  if (_toastTimer) clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(function(){ t.classList.remove("show"); }, 3000);
+}
+</script>
+</body>
+</html>

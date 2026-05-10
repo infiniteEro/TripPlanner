@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+<script src="api.js"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+                  "background": "#f7f9fb",
+                  "error-container": "#ffdad6",
+                  "surface-container-lowest": "#ffffff",
+                  "on-tertiary-container": "#4d2b00",
+                  "on-tertiary-fixed-variant": "#693c00",
+                  "tertiary": "#8a5100",
+                  "on-secondary-container": "#00714d",
+                  "outline-variant": "#bec8d2",
+                  "surface-container-low": "#f2f4f6",
+                  "primary-fixed-dim": "#89ceff",
+                  "on-surface": "#191c1e",
+                  "error": "#ba1a1a",
+                  "surface-dim": "#d8dadc",
+                  "on-secondary-fixed-variant": "#005236",
+                  "outline": "#6e7881",
+                  "on-background": "#191c1e",
+                  "on-tertiary-fixed": "#2c1600",
+                  "on-primary": "#ffffff",
+                  "on-error-container": "#93000a",
+                  "primary-fixed": "#c9e6ff",
+                  "on-primary-container": "#003751",
+                  "primary": "#006591",
+                  "secondary-fixed-dim": "#4edea3",
+                  "inverse-surface": "#2d3133",
+                  "inverse-on-surface": "#eff1f3",
+                  "on-tertiary": "#ffffff",
+                  "surface-variant": "#e0e3e5",
+                  "tertiary-container": "#de8712",
+                  "surface-bright": "#f7f9fb",
+                  "inverse-primary": "#89ceff",
+                  "on-error": "#ffffff",
+                  "surface": "#f7f9fb",
+                  "on-primary-fixed-variant": "#004c6e",
+                  "on-secondary-fixed": "#002113",
+                  "surface-container": "#eceef0",
+                  "secondary-container": "#6cf8bb",
+                  "surface-container-high": "#e6e8ea",
+                  "secondary": "#006c49",
+                  "surface-container-highest": "#e0e3e5",
+                  "secondary-fixed": "#6ffbbe",
+                  "surface-tint": "#006591",
+                  "on-secondary": "#ffffff",
+                  "on-surface-variant": "#3e4850",
+                  "tertiary-fixed-dim": "#ffb86e",
+                  "tertiary-fixed": "#ffdcbd",
+                  "primary-container": "#0ea5e9",
+                  "on-primary-fixed": "#001e2f"
+          },
+          "borderRadius": {
+                  "DEFAULT": "0.25rem",
+                  "lg": "0.5rem",
+                  "xl": "0.75rem",
+                  "full": "9999px"
+          },
+          "spacing": {
+                  "margin-desktop": "40px",
+                  "sidebar-width": "280px",
+                  "margin-mobile": "20px",
+                  "container-max": "1440px",
+                  "unit": "8px",
+                  "gutter": "24px"
+          },
+          "fontFamily": {
+                  "display-lg": ["Plus Jakarta Sans"],
+                  "headline-lg": ["Plus Jakarta Sans"],
+                  "body-lg": ["Inter"],
+                  "body-md": ["Inter"],
+                  "headline-lg-mobile": ["Plus Jakarta Sans"],
+                  "label-sm": ["Inter"],
+                  "title-md": ["Plus Jakarta Sans"]
+          },
+          "fontSize": {
+                  "display-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                  "headline-lg": ["32px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                  "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                  "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                  "headline-lg-mobile": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                  "label-sm": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                  "title-md": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .glass-card {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1.5px solid rgba(255, 255, 255, 0.3);
+    }
+    .donut-segment {
+      transition: stroke-dashoffset 0.3s ease;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+    const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  </script>
+</head>
+<body class="bg-background font-body-md text-on-background min-h-screen">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full w-[280px] bg-white/70 backdrop-blur-xl border-r-[1.5px] border-white/30 shadow-sm shadow-primary/10 flex flex-col h-full py-8 z-50">
+<div class="px-6 mb-10">
+<h1 class="font-display-lg text-display-lg text-primary">Traveloop</h1>
+<p class="font-title-md text-on-surface-variant text-sm mt-1">Personalized Planning</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 text-on-surface-variant px-6 py-3 hover:bg-primary-container/10 hover:text-primary transition-all duration-300 rounded-xl group" href="dashboard.html">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform" data-icon="dashboard">dashboard</span>
+<span class="font-title-md text-title-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 bg-primary-container/20 text-primary border-l-4 border-primary px-6 py-3 transition-all duration-300 rounded-r-xl group" href="#">
+<span class="material-symbols-outlined" data-icon="event_note" style="font-variation-settings: 'FILL' 1;">event_note</span>
+<span class="font-title-md text-title-md">Itinerary</span>
+</a>
+        <a class="flex items-center gap-3 text-on-surface-variant px-6 py-3 hover:bg-primary-container/10 hover:text-primary transition-all duration-300 rounded-xl group" href="friends.html">
+            <span class="material-symbols-outlined group-hover:scale-110 transition-transform">group</span>
+            <span class="font-title-md text-title-md">Friends</span>
+        </a>
+        <a class="flex items-center gap-3 text-on-surface-variant px-6 py-3 hover:bg-primary-container/10 hover:text-primary transition-all duration-300 rounded-xl group" href="budget.html">
+<a class="flex items-center gap-3 text-on-surface-variant px-6 py-3 hover:bg-primary-container/10 hover:text-primary transition-all duration-300 rounded-xl group" href="packing.html">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform" data-icon="inventory_2">inventory_2</span>
+<span class="font-title-md text-title-md">Packing List</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant px-6 py-3 hover:bg-primary-container/10 hover:text-primary transition-all duration-300 rounded-xl group" href="notes.html">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform" data-icon="description">description</span>
+<span class="font-title-md text-title-md">Notes</span>
+</a>
+</nav>
+<div class="px-6 mt-auto">
+<button class="w-full bg-primary text-on-primary py-4 rounded-xl font-title-md text-title-md flex items-center justify-center gap-2 shadow-lg shadow-primary/20 active:scale-[0.98] transition-transform">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+                Plan New Trip
+            </button>
+<div class="mt-8 flex items-center gap-3 px-2">
+<div class="w-10 h-10 rounded-full bg-surface-container overflow-hidden">
+<img alt="User profile" data-alt="A professional portrait of a modern traveler in a brightly lit studio. The lighting is soft and airy, creating a premium light-mode aesthetic. The individual has a friendly expression, suggesting a sense of exploration and excitement. The color palette is clean and neutral with soft highlights on the skin and hair." src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80&h=80&fit=crop&crop=face"/>
+</div>
+    <div>
+        <p class="font-title-md text-sm text-on-surface">Alex Rivera</p>
+        <p class="text-xs text-on-surface-variant">Travel Enthusiast</p>
+    </div>
+    <button onclick="localStorage.clear(); window.location.href='login.html';" class="ml-auto w-8 h-8 flex items-center justify-center text-error hover:bg-error/10 rounded-full transition-all" title="Sign Out">
+        <span class="material-symbols-outlined text-sm">logout</span>
+    </button>
+</div>
+</div>
+</aside>
+<!-- TopNavBar -->
+<header class="fixed top-0 right-0 w-[calc(100%-280px)] h-16 px-margin-desktop bg-white/10 backdrop-blur-md flex justify-between items-center z-40">
+<div class="flex items-center gap-4">
+<h2 class="font-display-lg text-title-md text-primary">Royal Rajasthan &amp; South India</h2>
+<span class="text-on-surface-variant/30 px-2">/</span>
+<span class="text-on-surface-variant font-body-md">Oct 12 – Oct 24, 2025</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" data-icon="search">search</span>
+<input class="pl-10 pr-4 py-2 bg-white/50 border border-white/40 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 w-64" placeholder="Search itinerary..." type="text"/>
+</div>
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button onclick="window.location.href='chatbot.html'" class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">smart_toy</span>
+</button>
+</div>
+</div>
+</header>
+
+<!-- ADD ACTIVITY MODAL -->
+<div id="activity-modal" class="hidden fixed inset-0 bg-black/50 z-[100] flex items-center justify-center backdrop-blur-sm p-4">
+  <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl transform transition-all scale-95 opacity-0" id="activity-modal-content">
+    <div class="flex justify-between items-center mb-6">
+      <h3 class="text-xl font-bold text-primary">Add Activity to <span id="modal-city-name">...</span></h3>
+      <button onclick="closeActivityModal()" class="text-on-surface-variant hover:text-on-surface"><span class="material-symbols-outlined">close</span></button>
+    </div>
+    
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-bold text-on-surface-variant mb-2">Select a Recommended Place</label>
+        <div id="place-suggestions" class="flex flex-wrap gap-2 max-h-40 overflow-y-auto p-1">
+          <!-- Suggestions injected here -->
+        </div>
+      </div>
+
+      <div class="border-t border-dashed border-outline-variant pt-4">
+        <label class="block text-sm font-bold text-on-surface-variant mb-1">Or Enter Custom Place</label>
+        <input type="text" id="custom-activity-name" placeholder="e.g. Local Market Visit" class="w-full px-4 py-3 rounded-xl border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm"/>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-bold text-on-surface-variant mb-1">Time</label>
+          <input type="time" id="activity-time" value="09:00" class="w-full px-3 py-2.5 rounded-xl border border-outline-variant focus:outline-none text-sm"/>
+        </div>
+        <div>
+          <label class="block text-sm font-bold text-on-surface-variant mb-1">Category</label>
+          <select id="activity-category" class="w-full px-3 py-2.5 rounded-xl border border-outline-variant focus:outline-none text-sm">
+            <option>Culture</option>
+            <option>Nature</option>
+            <option>Food</option>
+            <option>Experience</option>
+            <option>History</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex gap-3 mt-8">
+      <button onclick="closeActivityModal()" class="flex-1 py-3 rounded-xl border border-outline-variant text-on-surface-variant hover:bg-surface-container transition-all font-bold">Cancel</button>
+      <button onclick="saveActivity()" class="flex-1 py-3 rounded-xl bg-primary text-white font-bold hover:bg-primary/90 transition-all active:scale-[0.98]">Add Activity ✨</button>
+    </div>
+  </div>
+</div>
+<!-- Main Content Canvas -->
+<main class="ml-[280px] mr-[400px] pt-24 pb-16 px-12">
+  <div class="max-w-4xl mx-auto">
+    <header class="mb-12 flex justify-between items-end">
+      <div>
+        <h3 class="font-display-lg text-headline-lg text-on-surface" id="itinerary-title">Your Journey Flow</h3>
+        <p class="text-on-surface-variant mt-2 font-body-lg">Designing the perfect sequence of experiences across India.</p>
+      </div>
+      <div class="flex p-1 bg-surface-container-low rounded-2xl border border-white/40">
+        <button onclick="setViewMode('builder')" id="btn-builder" class="px-6 py-2 rounded-xl text-sm font-bold bg-primary text-white shadow-lg shadow-primary/20 transition-all">Edit Mode</button>
+        <button onclick="setViewMode('view')" id="btn-view" class="px-6 py-2 rounded-xl text-sm font-bold text-on-surface-variant hover:bg-white/50 transition-all">View Mode</button>
+      </div>
+    </header>
+
+    <!-- BUILDER VIEW -->
+    <div id="itinerary-builder" class="space-y-8">
+      <div id="stops-list" class="relative pl-8 space-y-12">
+        <div class="absolute left-[11px] top-4 bottom-4 w-0.5 border-l-2 border-dashed border-primary/30"></div>
+        <!-- Stops will be injected here -->
+      </div>
+      
+      <!-- Add Stop Trigger -->
+      <div class="relative pl-8">
+        <div class="absolute -left-[29px] top-0 w-6 h-6 rounded-full bg-surface-container border-2 border-white flex items-center justify-center z-10">
+          <span class="material-symbols-outlined text-[12px] text-on-surface-variant">add</span>
+        </div>
+        <button onclick="openAddStop()" class="w-full py-8 border-2 border-dashed border-primary/20 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-primary/5 hover:border-primary/40 transition-all group">
+          <div class="w-12 h-12 rounded-full bg-primary-container/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+            <span class="material-symbols-outlined">add_location_alt</span>
+          </div>
+          <span class="font-title-md text-primary font-bold">Add New Stop</span>
+          <span class="text-xs text-on-surface-variant">Search in explorer to add or click here</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- SUMMARY VIEW (Hidden by default) -->
+    <div id="itinerary-summary" class="hidden space-y-10">
+       <!-- Day by day summary will be injected here -->
+    </div>
+  </div>
+</main>
+<!-- NavigationDrawer (Search Explorer) -->
+<aside class="fixed right-0 top-0 h-full w-[400px] bg-white/80 backdrop-blur-2xl border-l-[1.5px] border-white/30 shadow-2xl shadow-primary/10 flex flex-col p-6 overflow-y-auto z-[60]">
+  <div class="flex justify-between items-center mb-8">
+    <h3 class="font-display-lg text-title-md text-on-surface font-bold">Search Explorer</h3>
+    <button class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+  </div>
+
+  <div class="space-y-6">
+    <div class="space-y-2">
+      <label class="text-xs font-label-sm text-on-surface-variant uppercase tracking-widest font-bold">Search Query</label>
+      <div class="relative">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+        <input oninput="filterCities(this.value)" class="w-full pl-10 pr-4 py-3 bg-white border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" placeholder="Agra, Munnar, Goa..." type="text"/>
+      </div>
+    </div>
+
+    <div class="pt-4">
+      <h4 class="text-xs font-label-sm text-on-surface-variant uppercase tracking-widest mb-4 font-bold">Trending in India</h4>
+      <div class="space-y-4" id="city-results">
+        <!-- City cards for Agra, Munnar, Rajasthan, Goa -->
+        <div class="flex items-center gap-4 p-3 rounded-xl hover:bg-surface-container transition-all cursor-pointer group" onclick="addCity('Agra')">
+          <div class="w-16 h-16 rounded-lg overflow-hidden shrink-0">
+            <img src="https://images.unsplash.com/photo-1564507592333-c60657eea523?w=150&h=150&fit=crop" class="w-full h-full object-cover"/>
+          </div>
+          <div class="flex-1">
+            <p class="font-bold text-on-surface group-hover:text-primary transition-colors">Agra</p>
+            <p class="text-xs text-on-surface-variant">City of Taj Mahal</p>
+          </div>
+          <button class="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
+            <span class="material-symbols-outlined text-sm">add</span>
+          </button>
+        </div>
+
+        <div class="flex items-center gap-4 p-3 rounded-xl hover:bg-surface-container transition-all cursor-pointer group" onclick="addCity('Munnar')">
+          <div class="w-16 h-16 rounded-lg overflow-hidden shrink-0">
+            <img src="https://images.unsplash.com/photo-1609766934234-1e59184dde0e?w=150&h=150&fit=crop" class="w-full h-full object-cover"/>
+          </div>
+          <div class="flex-1">
+            <p class="font-bold text-on-surface group-hover:text-primary transition-colors">Munnar</p>
+            <p class="text-xs text-on-surface-variant">Emerald Tea Trails</p>
+          </div>
+          <button class="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
+            <span class="material-symbols-outlined text-sm">add</span>
+          </button>
+        </div>
+
+        <div class="flex items-center gap-4 p-3 rounded-xl hover:bg-surface-container transition-all cursor-pointer group" onclick="addCity('Jaipur')">
+          <div class="w-16 h-16 rounded-lg overflow-hidden shrink-0">
+            <img src="https://images.unsplash.com/photo-1477587458883-47145ed94245?w=150&h=150&fit=crop" class="w-full h-full object-cover"/>
+          </div>
+          <div class="flex-1">
+            <p class="font-bold text-on-surface group-hover:text-primary transition-colors">Jaipur</p>
+            <p class="text-xs text-on-surface-variant">Royal Rajasthan Heritage</p>
+          </div>
+          <button class="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
+            <span class="material-symbols-outlined text-sm">add</span>
+          </button>
+        </div>
+
+        <div class="flex items-center gap-4 p-3 rounded-xl hover:bg-surface-container transition-all cursor-pointer group" onclick="addCity('Goa')">
+          <div class="w-16 h-16 rounded-lg overflow-hidden shrink-0">
+            <img src="https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=150&h=150&fit=crop" class="w-full h-full object-cover"/>
+          </div>
+          <div class="flex-1">
+            <p class="font-bold text-on-surface group-hover:text-primary transition-colors">Goa</p>
+            <p class="text-xs text-on-surface-variant">Sunkissed Beaches</p>
+          </div>
+          <button class="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
+            <span class="material-symbols-outlined text-sm">add</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-auto pt-8">
+    <div class="flex items-center gap-2 mb-4 text-on-surface-variant">
+      <span class="material-symbols-outlined text-[18px]">history</span>
+      <span class="text-xs font-label-sm uppercase tracking-widest font-bold">Recent Searches</span>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <span class="px-3 py-1 bg-surface-container text-xs rounded-full hover:bg-primary-container/20 hover:text-primary cursor-pointer transition-colors">Rajasthan Tour</span>
+      <span class="px-3 py-1 bg-surface-container text-xs rounded-full hover:bg-primary-container/20 hover:text-primary cursor-pointer transition-colors">Taj Mahal Tickets</span>
+      <span class="px-3 py-1 bg-surface-container text-xs rounded-full hover:bg-primary-container/20 hover:text-primary cursor-pointer transition-colors">Kerala Backwaters</span>
+    </div>
+  </div>
+</aside>
+
+<script>
+let itinerary = { stops: [] };
+let currentMode = 'builder';
+
+// Initialize data from API
+async function init() {
+    try {
+        const data = await TravelAPI.getItinerary();
+        if (data && data.stops) {
+            itinerary = data;
+        } else {
+            console.warn('No itinerary data found, initializing empty.');
+            itinerary = { stops: [] };
+        }
+    } catch (e) {
+        console.error('Failed to init itinerary:', e);
+        itinerary = { stops: [] };
+    }
+    renderItinerary();
+}
+
+function openAddStop() {
+    // Scroll to Search Explorer or just show a hint
+    const explorer = document.querySelector('aside');
+    explorer.classList.add('ring-4', 'ring-primary/20');
+    setTimeout(() => explorer.classList.remove('ring-4', 'ring-primary/20'), 2000);
+    showNotification("Use the Search Explorer on the right to add a city!");
+}
+
+function setViewMode(mode) {
+    currentMode = mode;
+    const builder = document.getElementById('itinerary-builder');
+    const summary = document.getElementById('itinerary-summary');
+    const btnB = document.getElementById('btn-builder');
+    const btnV = document.getElementById('btn-view');
+
+    if (mode === 'builder') {
+        builder.classList.remove('hidden');
+        summary.classList.add('hidden');
+        btnB.className = "px-6 py-2 rounded-xl text-sm font-bold bg-primary text-white shadow-lg shadow-primary/20 transition-all";
+        btnV.className = "px-6 py-2 rounded-xl text-sm font-bold text-on-surface-variant hover:bg-white/50 transition-all";
+    } else {
+        builder.classList.add('hidden');
+        summary.classList.remove('hidden');
+        btnV.className = "px-6 py-2 rounded-xl text-sm font-bold bg-primary text-white shadow-lg shadow-primary/20 transition-all";
+        btnB.className = "px-6 py-2 rounded-xl text-sm font-bold text-on-surface-variant hover:bg-white/50 transition-all";
+        renderSummary();
+    }
+}
+
+function renderItinerary() {
+    const list = document.getElementById('stops-list');
+    list.innerHTML = '<div class="absolute left-[11px] top-4 bottom-4 w-0.5 border-l-2 border-dashed border-primary/30"></div>';
+    
+    itinerary.stops.forEach((stop, index) => {
+        const card = document.createElement('div');
+        card.className = "mb-12 relative stop-item";
+        card.dataset.id = stop.id;
+        card.innerHTML = `
+            <div class="absolute -left-[29px] top-4 w-6 h-6 rounded-full bg-primary border-4 border-background z-10"></div>
+            <div class="glass-card rounded-2xl p-6 hover:shadow-xl hover:shadow-primary/5 transition-all duration-500 group relative">
+                <button onclick="deleteStop(${stop.id})" class="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-error text-white opacity-0 group-hover:opacity-100 transition-all shadow-lg flex items-center justify-center">
+                   <span class="material-symbols-outlined text-sm">delete</span>
+                </button>
+                <div class="flex justify-between items-start mb-6">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-xs font-bold uppercase tracking-widest text-primary">Stop 0${index + 1}</span>
+                        </div>
+                        <h4 class="font-display-lg text-2xl font-bold text-on-surface">${stop.city}, ${stop.country}</h4>
+                        <div class="flex items-center gap-4 mt-2 text-on-surface-variant">
+                            <div class="flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm">calendar_today</span>
+                                <span class="text-sm">${stop.arrival} - ${stop.departure}</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm">hotel</span>
+                                <span class="text-sm">${stop.hotel}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w-24 h-24 rounded-xl overflow-hidden shadow-md">
+                        <img src="${stop.img}" class="w-full h-full object-cover"/>
+                    </div>
+                </div>
+                <div class="space-y-3">
+                    <p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Planned Activities</p>
+                    ${stop.activities.map(act => `
+                        <div class="flex items-center gap-3 p-3 bg-white/30 rounded-lg border border-white/20">
+                            <span class="material-symbols-outlined text-primary">event</span>
+                            <span class="flex-1 text-sm font-medium">${act.name}</span>
+                            <span class="text-xs text-on-surface-variant font-bold">${act.time}</span>
+                        </div>
+                    `).join('')}
+                    <button onclick="openActivityModal(${stop.id})" class="w-full py-2 border border-dashed border-primary/30 rounded-lg text-xs font-bold text-primary hover:bg-primary/5 transition-all mt-2">
+                       + Add Activity
+                    </button>
+                </div>
+            </div>
+        `;
+        list.appendChild(card);
+    });
+
+    initDragDrop();
+}
+
+// ── ACTIVITY DATA ──────────────────────────────────────────
+const touristPlaces = {
+    'Agra': [
+        { name: 'Taj Mahal', cat: 'Culture', desc: 'The world-famous white marble mausoleum; best visited at sunrise.' },
+        { name: 'Agra Fort', cat: 'History', desc: 'A massive UNESCO-listed red sandstone fortress that served as the main residence of Mughal Emperors.' },
+        { name: 'Fatehpur Sikri', cat: 'History', desc: 'An ancient "ghost city" featuring the stunning Buland Darwaza (Gate of Magnificence).' },
+        { name: 'Itmad-ud-Daulah', cat: 'History', desc: 'Often called the "Baby Taj," this was the first Mughal structure built entirely of marble.' },
+        { name: 'Mehtab Bagh', cat: 'Nature', desc: 'A garden located directly across the river from the Taj Mahal, offering the best "moonlight" views.' }
+    ],
+    'Jaipur': [
+        { name: 'Amber Fort', cat: 'History', desc: 'A majestic hilltop fort famous for its elephant rides and the Sheesh Mahal (Mirror Palace).' },
+        { name: 'Hawa Mahal', cat: 'Culture', desc: 'The "Palace of Winds," known for its iconic honeycomb-like pink facade with 953 windows.' },
+        { name: 'City Palace', cat: 'Culture', desc: 'A complex of courtyards, gardens, and buildings that blends Rajasthani and Mughal architecture.' },
+        { name: 'Jantar Mantar', cat: 'History', desc: 'A UNESCO World Heritage site featuring the world\'s largest stone sundial.' },
+        { name: 'Jal Mahal', cat: 'Culture', desc: 'The "Water Palace" located in the middle of Man Sagar Lake.' },
+        { name: 'Nahargarh Fort', cat: 'History', desc: 'Offers the best panoramic sunset views of the entire Jaipur city.' }
+    ],
+    'Munnar': [
+        { name: 'Eravikulam National Park', cat: 'Nature', desc: 'Home to the endangered Nilgiri Tahr and the highest peak in South India, Anamudi.' },
+        { name: 'Mattupetty Dam', cat: 'Nature', desc: 'Known for its beautiful lake, boat rides, and sightings of wild elephants.' },
+        { name: 'Tea Museum', cat: 'Experience', desc: 'Learn about the history and processing of tea in the Nilgiri mountains.' },
+        { name: 'Kolukkumalai Tea Estate', cat: 'Nature', desc: 'The world’s highest tea plantation, famous for its sunrise views and traditional tea.' },
+        { name: 'Attukal Waterfalls', cat: 'Nature', desc: 'A stunning scenic spot surrounded by lush jungles and hills.' }
+    ],
+    'Ooty': [
+        { name: 'Nilgiri Mountain Railway', cat: 'Experience', desc: 'Take the "Toy Train" ride, a UNESCO World Heritage site with breathtaking views.' },
+        { name: 'Botanical Gardens', cat: 'Nature', desc: 'A 55-acre garden featuring a 20-million-year-old fossilized tree and exotic flora.' },
+        { name: 'Ooty Lake', cat: 'Experience', desc: 'A picturesque artificial lake popular for boating and its surrounding eucalyptus trees.' },
+        { name: 'Doddabetta Peak', cat: 'Nature', desc: 'The highest point in the Nilgiris, offering a "Telescope House" to view the valleys.' },
+        { name: 'Pykara Waterfalls & Lake', cat: 'Nature', desc: 'A serene area perfect for picnics and speedboat rides.' },
+        { name: 'Rose Garden', cat: 'Nature', desc: 'One of the largest rose gardens in India with over 20,000 varieties of roses.' }
+    ]
+};
+
+let activeStopId = null;
+
+function openActivityModal(stopId) {
+    activeStopId = stopId;
+    const stop = itinerary.stops.find(s => s.id === stopId);
+    document.getElementById('modal-city-name').textContent = stop.city;
+    
+    const suggestions = touristPlaces[stop.city] || [];
+    const container = document.getElementById('place-suggestions');
+    container.innerHTML = '';
+    
+    suggestions.forEach(place => {
+        const card = document.createElement('div');
+        card.className = "w-full p-3 bg-surface-container-low rounded-2xl hover:bg-primary/5 cursor-pointer transition-all border border-outline-variant/30 group";
+        card.innerHTML = `
+            <div class="flex justify-between items-start mb-1">
+                <p class="font-bold text-sm text-on-surface group-hover:text-primary transition-colors">${place.name}</p>
+                <span class="text-[10px] px-2 py-0.5 bg-primary/10 text-primary rounded-full uppercase font-bold tracking-widest">${place.cat}</span>
+            </div>
+            <p class="text-xs text-on-surface-variant leading-relaxed opacity-70 group-hover:opacity-100 transition-opacity">${place.desc}</p>
+        `;
+        card.onclick = () => {
+            document.getElementById('custom-activity-name').value = place.name;
+            document.getElementById('activity-category').value = place.cat;
+            
+            // Visual feedback for selection
+            document.querySelectorAll('#place-suggestions > div').forEach(c => c.classList.remove('border-primary', 'bg-primary/5'));
+            card.classList.add('border-primary', 'bg-primary/5');
+        };
+        container.appendChild(card);
+    });
+
+    if (suggestions.length === 0) {
+        container.innerHTML = '<p class="text-xs text-on-surface-variant opacity-50">No recommendations for this city yet.</p>';
+    }
+
+    const modal = document.getElementById('activity-modal');
+    const content = document.getElementById('activity-modal-content');
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        content.classList.remove('scale-95', 'opacity-0');
+        content.classList.add('scale-100', 'opacity-100');
+    }, 10);
+}
+
+function closeActivityModal() {
+    const modal = document.getElementById('activity-modal');
+    const content = document.getElementById('activity-modal-content');
+    content.classList.remove('scale-100', 'opacity-100');
+    content.classList.add('scale-95', 'opacity-0');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        document.getElementById('custom-activity-name').value = '';
+    }, 300);
+}
+
+function saveActivity() {
+    const name = document.getElementById('custom-activity-name').value;
+    const time = document.getElementById('activity-time').value;
+    const cat = document.getElementById('activity-category').value;
+
+    if (!name) {
+        alert('Please enter or select a place!');
+        return;
+    }
+
+    const stop = itinerary.stops.find(s => s.id === activeStopId);
+    stop.activities.push({
+        id: Date.now(),
+        name: name,
+        time: time,
+        category: cat
+    });
+
+    TravelAPI.saveItinerary(itinerary);
+    renderItinerary();
+    if (currentMode === 'view') renderSummary();
+    closeActivityModal();
+    showNotification(`Added ${name} to ${stop.city}`);
+}
+
+function renderSummary() {
+    const summary = document.getElementById('itinerary-summary');
+    let dayCounter = 1;
+    
+    summary.innerHTML = itinerary.stops.map(stop => {
+        const cityHeader = `
+            <div class="mb-12">
+               <div class="h-64 relative rounded-[2rem] overflow-hidden shadow-2xl mb-8">
+                  <img src="${stop.img}" class="w-full h-full object-cover"/>
+                  <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                  <div class="absolute bottom-8 left-8 text-white">
+                     <div class="flex items-center gap-2 mb-2">
+                        <span class="px-3 py-1 bg-primary text-white text-[10px] font-bold rounded-full uppercase tracking-widest">Destination</span>
+                     </div>
+                     <h4 class="text-5xl font-display-lg font-bold">${stop.city}</h4>
+                     <p class="opacity-90 text-lg mt-1 font-body-lg">${stop.arrival} – ${stop.departure} • ${stop.hotel}</p>
+                  </div>
+               </div>
+               
+               <div class="space-y-8 pl-4 border-l-2 border-primary/10 ml-4">
+                  ${stop.activities.map(act => {
+                      // Find description from touristPlaces data if available
+                      const cityPlaces = touristPlaces[stop.city] || [];
+                      const placeData = cityPlaces.find(p => p.name === act.name) || { desc: 'Enjoy your visit to this beautiful location.' };
+                      
+                      const html = `
+                        <div class="relative pl-12 group">
+                           <div class="absolute left-[-33px] top-0 w-8 h-8 rounded-full bg-white border-2 border-primary flex items-center justify-center z-10 shadow-sm group-hover:scale-110 transition-transform">
+                              <span class="text-[10px] font-bold text-primary">${dayCounter++}</span>
+                           </div>
+                           <div class="glass-card p-6 rounded-2xl hover:shadow-xl transition-all border border-white/40">
+                              <div class="flex justify-between items-start mb-3">
+                                 <div>
+                                    <span class="text-[10px] font-bold uppercase tracking-widest text-primary/60 mb-1 block">Day ${dayCounter-1} • ${act.time}</span>
+                                    <h5 class="text-xl font-bold text-on-surface">${act.name}</h5>
+                                 </div>
+                                 <span class="px-2 py-1 bg-surface-container text-[10px] font-bold rounded-md text-on-surface-variant uppercase tracking-wider">${act.category}</span>
+                              </div>
+                              <p class="text-on-surface-variant leading-relaxed font-body-md">${placeData.desc}</p>
+                           </div>
+                        </div>
+                      `;
+                      return html;
+                  }).join('')}
+                  
+                  ${stop.activities.length === 0 ? `
+                    <div class="pl-12 opacity-50 italic text-sm">No activities planned for this stop yet.</div>
+                  ` : ''}
+               </div>
+            </div>
+        `;
+        return cityHeader;
+    }).join('');
+
+    if (itinerary.stops.length === 0) {
+        summary.innerHTML = `
+            <div class="text-center py-20 bg-surface-container-low rounded-[2rem] border-2 border-dashed border-outline-variant">
+               <span class="material-symbols-outlined text-6xl text-on-surface-variant/20 mb-4">map</span>
+               <h4 class="text-xl font-bold text-on-surface">Your summary is empty</h4>
+               <p class="text-on-surface-variant">Switch to Edit Mode and add some cities first!</p>
+            </div>
+        `;
+    }
+}
+
+function initDragDrop() {
+    const el = document.getElementById('stops-list');
+    Sortable.create(el, {
+        animation: 150,
+        handle: '.glass-card',
+        onEnd: function (evt) {
+            const moved = itinerary.stops.splice(evt.oldIndex, 1)[0];
+            itinerary.stops.splice(evt.newIndex, 0, moved);
+            TravelAPI.saveItinerary(itinerary);
+            renderItinerary();
+        }
+    });
+}
+
+function addCity(cityName) {
+    const cityData = {
+        'Agra': { hotel: 'The Oberoi Amarvilas', img: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?w=800' },
+        'Munnar': { hotel: 'Tea County Resort', img: 'https://images.unsplash.com/photo-1609766934234-1e59184dde0e?w=800' },
+        'Jaipur': { hotel: 'Rambagh Palace', img: 'https://images.unsplash.com/photo-1477587458883-47145ed94245?w=800' },
+        'Goa': { hotel: 'Taj Exotica Resort', img: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=800' }
+    };
+
+    const data = cityData[cityName];
+    const newStop = {
+        id: Date.now(),
+        city: cityName,
+        country: 'India',
+        arrival: '2025-11-01',
+        departure: '2025-11-05',
+        hotel: data.hotel,
+        img: data.img,
+        activities: []
+    };
+
+    itinerary.stops.push(newStop);
+    TravelAPI.saveItinerary(itinerary);
+    renderItinerary();
+    showNotification(`${cityName} added to your journey!`);
+}
+
+function deleteStop(id) {
+    itinerary.stops = itinerary.stops.filter(s => s.id !== id);
+    TravelAPI.saveItinerary(itinerary);
+    renderItinerary();
+}
+
+function showNotification(msg) {
+    const notif = document.createElement('div');
+    notif.className = 'fixed bottom-6 right-6 bg-primary text-white px-6 py-4 rounded-2xl shadow-2xl text-sm font-bold z-[100] flex items-center gap-3 animate-bounce';
+    notif.innerHTML = '<span class="material-symbols-outlined">verified</span> ' + msg;
+    document.body.appendChild(notif);
+    setTimeout(() => {
+        notif.style.opacity = '0';
+        notif.style.transition = 'opacity 0.5s ease';
+        setTimeout(() => notif.remove(), 500);
+    }, 3000);
+}
+
+function filterCities(val) {
+   // Basic filtering logic for the list
+   const items = document.querySelectorAll('#city-results > div');
+   items.forEach(item => {
+      const text = item.textContent.toLowerCase();
+      item.style.display = text.includes(val.toLowerCase()) ? 'flex' : 'none';
+   });
+}
+
+// Initial Load
+init();
+</script>
+
+</body></html>

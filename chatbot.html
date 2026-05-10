@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budget Trip AI Bot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f7f9fb; }
+        .chat-container { height: calc(100vh - 160px); }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+    <header class="bg-white border-b p-4 flex justify-between items-center shadow-sm">
+        <h1 class="text-xl font-bold text-[#006591]">Budget Trip AI Bot</h1>
+        <a href="itinerary.updated.html" class="text-sm text-gray-600 hover:text-[#006591]">← Back to Itinerary</a>
+    </header>
+
+    <main class="flex-1 container mx-auto max-w-2xl p-4">
+        <div id="chat-box" class="chat-container bg-white rounded-2xl shadow-sm border p-4 overflow-y-auto space-y-4">
+            <!-- Bot Welcome Message -->
+            <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-full bg-[#006591] flex items-center justify-center text-white text-xs">AI</div>
+                <div class="bg-gray-100 p-3 rounded-2xl rounded-tl-none max-w-[80%]">
+                    <p class="text-sm">Namaste! I'm your Budget Trip Assistant. Looking for the best trip under budget in India? Choose an option below to get started!</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 flex flex-wrap gap-2 justify-center" id="options-container">
+            <button onclick="handleOption('Best Budget Trips')" class="px-4 py-2 bg-white border border-[#006591] text-[#006591] rounded-full text-sm hover:bg-[#006591] hover:text-white transition-all">Best Budget Trips</button>
+            <button onclick="handleOption('What to Carry?')" class="px-4 py-2 bg-white border border-[#006591] text-[#006591] rounded-full text-sm hover:bg-[#006591] hover:text-white transition-all">What to Carry?</button>
+            <button onclick="handleOption('Ooty Activities')" class="px-4 py-2 bg-white border border-[#006591] text-[#006591] rounded-full text-sm hover:bg-[#006591] hover:text-white transition-all">Ooty Activities</button>
+            <button onclick="handleOption('Munnar Activities')" class="px-4 py-2 bg-white border border-[#006591] text-[#006591] rounded-full text-sm hover:bg-[#006591] hover:text-white transition-all">Munnar Activities</button>
+        </div>
+    </main>
+
+    <script>
+        const chatBox = document.getElementById('chat-box');
+        
+        function addMessage(text, isUser = false) {
+            const div = document.createElement('div');
+            div.className = `flex items-start gap-3 ${isUser ? 'flex-row-reverse' : ''}`;
+            
+            const avatar = isUser ? 
+                `<div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 text-xs">You</div>` :
+                `<div class="w-8 h-8 rounded-full bg-[#006591] flex items-center justify-center text-white text-xs">AI</div>`;
+            
+            div.innerHTML = `
+                ${avatar}
+                <div class="${isUser ? 'bg-[#006591] text-white' : 'bg-gray-100 text-gray-800'} p-3 rounded-2xl ${isUser ? 'rounded-tr-none' : 'rounded-tl-none'} max-w-[80%]">
+                    <p class="text-sm">${text}</p>
+                </div>
+            `;
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function handleOption(option) {
+            addMessage(option, true);
+            
+            setTimeout(() => {
+                let response = "";
+                if (option === 'Best Budget Trips') {
+                    response = "Here are the top 3 budget-friendly Indian destinations:<br>1. <b>Rishikesh:</b> Spiritual & Adventure (₹5k-8k)<br>2. <b>Hampi:</b> Historical Ruins (₹4k-7k)<br>3. <b>Gokarna:</b> Peaceful Beaches (₹6k-9k)";
+                } else if (option === 'What to Carry?') {
+                    response = "Keep it light! Essential carry-ons:<br>• Power bank & Universal adapter<br>• Personal hygiene kit<br>• Lightweight jacket (for hills)<br>• Comfortable walking shoes";
+                } else if (option === 'Ooty Activities') {
+                    response = "In Ooty, you can perform these activities:<br>• <b>Camp Fire:</b> Enjoy a cozy night with music.<br>• <b>Toy Train:</b> Ride the Nilgiri Mountain Railway.<br>• <b>Tea Tasting:</b> Visit a tea factory.";
+                } else if (option === 'Munnar Activities') {
+                    response = "In Munnar, you can perform these activities:<br>• <b>Tea Trek:</b> Walk through lush tea gardens.<br>• <b>Elephant Arrival Spot:</b> See elephants in the wild.<br>• <b>Kathakali:</b> Watch traditional dance performances.";
+                }
+                addMessage(response);
+            }, 600);
+        }
+    </script>
+</body>
+</html>

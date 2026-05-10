@@ -1,0 +1,23 @@
+{
+  "name": "traveloop-backend",
+  "version": "1.0.0",
+  "description": "Backend for Traveloop Application",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.10.3",
+    "@supabase/supabase-js": "^2.105.4",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.6",
+    "express": "^4.22.1",
+    "fs-extra": "^11.1.1",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.22.3"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
