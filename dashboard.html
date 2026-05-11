@@ -5,6 +5,7 @@
   <meta charset="utf-8" />
   <meta content="width=device-width, initial-scale=1.0" name="viewport" />
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link
     href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap"
     rel="stylesheet" />
@@ -91,10 +92,30 @@
       transform: scale(1.015);
       box-shadow: 0 20px 40px rgba(0, 101, 145, 0.12);
     }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 14px;
+      z-index: 9999;
+      transition: opacity 0.3s;
+    }
+
+    .toast.success {
+      background: #006c49;
+      color: white;
+    }
+
+    .toast.error {
+      background: #ba1a1a;
+      color: white;
+    }
   </style>
-  <script>
-    const user = { name: 'Explorer', email: 'explorer@traveloop.com' };
-  </script>
 </head>
 
 <body class="bg-background font-body-md text-on-surface min-h-screen">
@@ -149,16 +170,20 @@
       </button>
       <div class="mt-6 flex items-center gap-3 px-2">
         <div class="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
-          onclick="window.location.href='profile.html'">
-          <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80&h=80&fit=crop&crop=face"
-            class="w-10 h-10 rounded-full object-cover ring-2 ring-primary-container" alt="Profile" />
+          onclick="openProfileModal()">
+          <!-- Avatar: initials shown, replaced by photo if available -->
+          <div id="sidebar-avatar"
+            class="w-10 h-10 rounded-full ring-2 ring-primary-container bg-primary flex items-center justify-center text-white font-bold text-sm">
+            ?</div>
           <div>
-            <p class="text-sm font-bold text-on-surface">Ganesh Kumar</p>
+            <p id="sidebar-name" class="text-sm font-bold text-on-surface">Loading...</p>
             <p class="text-xs text-on-surface-variant">Pro Explorer 🌏</p>
           </div>
         </div>
-        <button class="ml-auto w-8 h-8 flex items-center justify-center text-primary/50 hover:bg-primary/10 rounded-full transition-all" title="Settings">
-          <span class="material-symbols-outlined text-sm">settings</span>
+        <button onclick="handleLogout()"
+          class="ml-auto w-8 h-8 flex items-center justify-center text-primary/50 hover:bg-primary/10 rounded-full transition-all"
+          title="Logout">
+          <span class="material-symbols-outlined text-sm">logout</span>
         </button>
       </div>
     </div>
@@ -183,8 +208,10 @@
       <button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
         <span class="material-symbols-outlined">notifications</span>
       </button>
-      <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80&h=80&fit=crop&crop=face"
-        class="w-8 h-8 rounded-full ring-2 ring-white/50 cursor-pointer" onclick="openProfileModal()" alt="Profile" />
+      <!-- Topbar avatar: initials circle, clicking opens profile modal -->
+      <div id="topbar-avatar" onclick="openProfileModal()"
+        class="w-9 h-9 rounded-full ring-2 ring-white/50 cursor-pointer bg-primary flex items-center justify-center text-white font-bold text-sm">
+        ?</div>
     </div>
   </header>
 
@@ -194,8 +221,9 @@
     <!-- Welcome -->
     <section class="mb-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
       <div>
-        <h1 class="font-display-lg text-4xl font-bold text-on-surface">Welcome back, Explorer. 👋</h1>
-        <p class="text-on-surface-variant mt-2 text-lg">You have <strong class="text-primary">3 upcoming adventures</strong> across India.</p>
+        <h1 id="welcome-msg" class="font-display-lg text-4xl font-bold text-on-surface">Welcome back! 👋</h1>
+        <p class="text-on-surface-variant mt-2 text-lg">You have <strong class="text-primary">3 upcoming
+            adventures</strong> across India.</p>
       </div>
       <div class="glass-card p-4 rounded-3xl border-primary/20 bg-primary/5 flex items-center gap-4 animate-pulse">
         <span class="material-symbols-outlined text-primary text-3xl">magic_button</span>
@@ -211,7 +239,6 @@
       <div class="absolute top-0 right-0 p-8 opacity-10">
         <span class="material-symbols-outlined text-[120px] text-primary">auto_awesome</span>
       </div>
-
       <div class="relative z-10">
         <div class="flex items-center gap-3 mb-6">
           <div
@@ -223,7 +250,6 @@
             <p class="text-sm text-on-surface-variant">Tell us your budget, we'll build your dream itinerary.</p>
           </div>
         </div>
-
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div class="space-y-1">
             <label class="text-[10px] font-bold text-on-surface-variant uppercase ml-2">Destination</label>
@@ -252,13 +278,9 @@
             </button>
           </div>
         </div>
-
-        <!-- Output Area -->
         <div id="ai-plan-output" class="hidden animate-in fade-in zoom-in duration-500">
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Left: Hotel & Summary -->
             <div id="ai-plan-sidebar" class="space-y-4"></div>
-            <!-- Right: Timeline -->
             <div id="ai-plan-timeline" class="lg:col-span-2 space-y-4"></div>
           </div>
         </div>
@@ -304,121 +326,91 @@
       </div>
     </div>
 
-    <!-- Recent Trips (Static/Mock) -->
+    <!-- Sample Trips -->
     <section class="mb-12">
       <div class="flex items-center justify-between mb-6">
         <h3 class="text-2xl font-bold text-on-surface">Sample Inspirations</h3>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-
-          <!-- Golden Triangle — large card -->
-          <div
-            class="lg:col-span-2 trip-card group relative h-[400px] rounded-3xl overflow-hidden glass-card shadow-lg cursor-pointer"
-            data-trip="goldenTriangle" onclick="openTripModal('goldenTriangle')">
-            <img
-              class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-              src="https://images.unsplash.com/photo-1564507592333-c60657eea523?w=900&h=600&fit=crop"
-              alt="Taj Mahal, Agra" />
-            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
-            <div class="absolute bottom-0 left-0 w-full p-7 bg-gradient-to-t from-black/60 to-transparent">
-              <div class="flex justify-between items-end">
-                <div>
-                  <span class="px-3 py-1 rounded-full bg-primary-container text-white text-xs font-bold">UPCOMING</span>
-                  <h4 class="text-2xl font-bold text-white mt-2">The Golden Triangle</h4>
-                  <div class="flex items-center gap-4 text-white/80 mt-1 text-sm">
-                    <span class="flex items-center gap-1"><span
-                        class="material-symbols-outlined text-sm">calendar_today</span> Oct 12 – Oct 24</span>
-                    <span class="flex items-center gap-1"><span
-                        class="material-symbols-outlined text-sm">location_on</span> Agra · Jaipur · Delhi</span>
-                  </div>
-                </div>
-                <div
-                  class="bg-white text-primary w-11 h-11 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                  <span class="material-symbols-outlined">chevron_right</span>
-                </div>
-              </div>
+        <div
+          class="lg:col-span-2 trip-card group relative h-[400px] rounded-3xl overflow-hidden glass-card shadow-lg cursor-pointer"
+          onclick="openTripModal('goldenTriangle')">
+          <img
+            class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+            src="https://images.unsplash.com/photo-1564507592333-c60657eea523?w=900&h=600&fit=crop" alt="Taj Mahal" />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+          <div class="absolute bottom-0 left-0 w-full p-7">
+            <span class="px-3 py-1 rounded-full bg-primary-container text-white text-xs font-bold">UPCOMING</span>
+            <h4 class="text-2xl font-bold text-white mt-2">The Golden Triangle</h4>
+            <div class="flex items-center gap-4 text-white/80 mt-1 text-sm">
+              <span class="flex items-center gap-1"><span
+                  class="material-symbols-outlined text-sm">calendar_today</span> Oct 12 – Oct 24</span>
+              <span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">location_on</span>
+                Agra · Jaipur · Delhi</span>
             </div>
           </div>
-
-          <!-- Munnar Trip -->
-          <div
-            class="trip-card group relative h-[400px] rounded-3xl overflow-hidden glass-card shadow-lg cursor-pointer"
-            data-trip="munnarTea" onclick="openTripModal('munnarTea')">
-            <img
-              class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-              src="https://images.unsplash.com/photo-1609766934234-1e59184dde0e?w=600&h=600&fit=crop"
-              alt="Munnar Tea Gardens" />
-            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
-            <div class="absolute bottom-0 left-0 w-full p-6 bg-white/20 backdrop-blur-sm">
-              <span
-                class="px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container text-xs font-bold">ACTIVE</span>
-              <h4 class="text-xl font-bold text-white mt-2">Munnar Tea Trails</h4>
-              <p class="text-white/70 text-sm mt-1">Sep 10 – Sep 18 · Munnar & Ooty</p>
-            </div>
-          </div>
-
-          <!-- Jaipur -->
-          <div
-            class="trip-card group relative h-[340px] rounded-3xl overflow-hidden glass-card shadow-lg cursor-pointer"
-            data-trip="jaipurCity" onclick="openTripModal('jaipurCity')">
-            <img
-              class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-              src="https://images.unsplash.com/photo-1477587458883-47145ed94245?w=600&h=450&fit=crop"
-              alt="Jaipur Hawa Mahal" />
-            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-            <div class="absolute bottom-0 left-0 w-full p-5 bg-white/25 backdrop-blur-sm">
-              <h4 class="text-lg font-bold text-white">Jaipur Pink City</h4>
-              <p class="text-white/70 text-xs mt-0.5">Nov 5 – Nov 12 · 6 Stops</p>
-            </div>
-          </div>
-
-          <!-- Goa -->
-          <div
-            class="trip-card group relative h-[340px] rounded-3xl overflow-hidden glass-card shadow-lg cursor-pointer"
-            data-trip="goaBeach" onclick="openTripModal('goaBeach')">
-            <img
-              class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-              src="https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=600&h=450&fit=crop" alt="Goa Beach" />
-            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-            <div class="absolute bottom-0 left-0 w-full p-5 bg-white/25 backdrop-blur-sm">
-              <h4 class="text-lg font-bold text-white">Goa Coastal Escape</h4>
-              <p class="text-white/70 text-xs mt-0.5">Dec 20 – Dec 28 · 3 Beaches</p>
-            </div>
-          </div>
-
-          <!-- Ooty -->
-          <div
-            class="trip-card group relative h-[340px] rounded-3xl overflow-hidden glass-card shadow-lg cursor-pointer"
-            data-trip="ootyHills" onclick="openTripModal('ootyHills')">
-            <img
-              class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-              src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=450&fit=crop"
-              alt="Ooty Hills" />
-            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-            <div class="absolute bottom-0 left-0 w-full p-5 bg-white/25 backdrop-blur-sm">
-              <h4 class="text-lg font-bold text-white">Ooty Queen of Hills</h4>
-              <p class="text-white/70 text-xs mt-0.5">Jan 3 – Jan 10 · 5 Stops</p>
-            </div>
-          </div>
-
         </div>
+        <div class="trip-card group relative h-[400px] rounded-3xl overflow-hidden glass-card shadow-lg cursor-pointer"
+          onclick="openTripModal('munnarTea')">
+          <img
+            class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+            src="The Best Places to Visit in Munnar in One Day.jpeg" alt="Munnar" />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
+          <div class="absolute bottom-0 left-0 w-full p-6 bg-white/20 backdrop-blur-sm">
+            <span
+              class="px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container text-xs font-bold">ACTIVE</span>
+            <h4 class="text-xl font-bold text-white mt-2">Munnar Tea Trails</h4>
+            <p class="text-white/70 text-sm mt-1">Sep 10 – Sep 18 · Munnar & Ooty</p>
+          </div>
+        </div>
+        <div class="trip-card group relative h-[340px] rounded-3xl overflow-hidden glass-card shadow-lg cursor-pointer"
+          onclick="openTripModal('jaipurCity')">
+          <img
+            class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+            src="https://images.unsplash.com/photo-1477587458883-47145ed94245?w=600&h=450&fit=crop" alt="Jaipur" />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+          <div class="absolute bottom-0 left-0 w-full p-5 bg-white/25 backdrop-blur-sm">
+            <h4 class="text-lg font-bold text-white">Jaipur Pink City</h4>
+            <p class="text-white/70 text-xs mt-0.5">Nov 5 – Nov 12 · 6 Stops</p>
+          </div>
+        </div>
+        <div class="trip-card group relative h-[340px] rounded-3xl overflow-hidden glass-card shadow-lg cursor-pointer"
+          onclick="openTripModal('goaBeach')">
+          <img
+            class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+            src="https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=600&h=450&fit=crop" alt="Goa" />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+          <div class="absolute bottom-0 left-0 w-full p-5 bg-white/25 backdrop-blur-sm">
+            <h4 class="text-lg font-bold text-white">Goa Coastal Escape</h4>
+            <p class="text-white/70 text-xs mt-0.5">Dec 20 – Dec 28 · 3 Beaches</p>
+          </div>
+        </div>
+        <div class="trip-card group relative h-[340px] rounded-3xl overflow-hidden glass-card shadow-lg cursor-pointer"
+          onclick="openTripModal('ootyHills')">
+          <img
+            class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+            src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=450&fit=crop" alt="Ooty" />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+          <div class="absolute bottom-0 left-0 w-full p-5 bg-white/25 backdrop-blur-sm">
+            <h4 class="text-lg font-bold text-white">Ooty Queen of Hills</h4>
+            <p class="text-white/70 text-xs mt-0.5">Jan 3 – Jan 10 · 5 Stops</p>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <!-- Saved Trips (From Route Planner) -->
+    <!-- Saved Trips from Supabase -->
     <section class="mb-12" id="saved-trips-section" style="display:none">
       <div class="flex items-center justify-between mb-6">
-        <h3 class="text-2xl font-bold text-on-surface">Saved Trips & Routes 📂</h3>
+        <h3 class="text-2xl font-bold text-on-surface">My Saved Trips 📂</h3>
         <span class="text-xs px-3 py-1 bg-primary/10 text-primary rounded-full font-bold uppercase tracking-widest">Your
           Vault</span>
       </div>
-      <div id="saved-trips-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        <!-- Saved trips from localStorage will be injected here -->
-      </div>
+      <div id="saved-trips-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
     </section>
 
     <!-- Bottom Widgets -->
     <section class="grid grid-cols-1 lg:grid-cols-4 gap-5">
-      <!-- Budget Widget -->
       <div class="lg:col-span-1 glass-card p-6 rounded-3xl">
         <div class="flex items-center justify-between mb-4">
           <h5 class="font-semibold text-on-surface">Trip Budget</h5>
@@ -440,8 +432,6 @@
         <a href="budget.html" class="mt-4 block text-center text-xs text-primary font-semibold hover:underline">View
           Full Budget →</a>
       </div>
-
-      <!-- Next Stop Timeline -->
       <div class="lg:col-span-2 glass-card p-6 rounded-3xl">
         <h5 class="font-semibold text-on-surface mb-5">Today's Schedule — Agra</h5>
         <div class="relative pl-10 space-y-5">
@@ -474,8 +464,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Weather + Tip -->
       <div class="lg:col-span-1 flex flex-col gap-4">
         <div class="glass-card p-5 rounded-3xl bg-primary/5 border-primary/20">
           <div class="flex items-center justify-between mb-1">
@@ -496,40 +484,48 @@
     </section>
   </main>
 
-  <!-- ═══════════════════════════════════════════════
-     PROFILE MODAL
-═══════════════════════════════════════════════ -->
+  <!-- ═══ PROFILE MODAL ═══ -->
   <div id="profileModal"
     class="hidden fixed inset-0 bg-black/50 z-[100] flex items-center justify-center backdrop-blur-sm"
     onclick="if(event.target===this)closeProfileModal()">
     <div class="bg-white rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl modal-enter">
       <div class="flex justify-between items-center mb-6">
         <h3 class="text-xl font-bold">My Profile</h3>
-        <button onclick="closeProfileModal()" class="text-on-surface-variant hover:text-on-surface p-1"><span
-            class="material-symbols-outlined">close</span></button>
+        <button onclick="closeProfileModal()" class="text-on-surface-variant hover:text-on-surface p-1">
+          <span class="material-symbols-outlined">close</span>
+        </button>
       </div>
       <div class="flex flex-col items-center text-center mb-6">
-        <div
+        <!-- Avatar circle with initials -->
+        <div id="modal-avatar"
           class="w-24 h-24 rounded-full mb-4 ring-4 ring-primary-container bg-primary flex items-center justify-center text-white text-3xl font-bold">
-          ${(user?.email || 'G')[0].toUpperCase()}
-        </div>
-        <h2 id="profile-name" class="text-2xl font-bold">${user?.email?.split('@')[0] || 'Guest'}</h2>
+          ?</div>
+        <h2 id="modal-name" class="text-2xl font-bold">Loading...</h2>
         <p class="text-on-surface-variant">Traveloop Explorer 🌏</p>
       </div>
       <div class="space-y-3 mb-6">
         <div class="flex items-center justify-between p-3 bg-surface-container rounded-xl">
           <span class="text-on-surface-variant text-sm">Email</span>
-          <span class="font-semibold text-sm truncate ml-4">${user?.email || 'guest@traveloop.in'}</span>
+          <span id="modal-email" class="font-semibold text-sm truncate ml-4">Loading...</span>
         </div>
         <div class="flex items-center justify-between p-3 bg-surface-container rounded-xl">
           <span class="text-on-surface-variant text-sm">User ID</span>
-          <span class="font-semibold text-[10px] opacity-50 ml-4">${user?.id || 'N/A'}</span>
+          <span id="modal-userid"
+            class="font-semibold text-[10px] opacity-50 ml-4 truncate max-w-[160px]">Loading...</span>
+        </div>
+        <div class="flex items-center justify-between p-3 bg-surface-container rounded-xl">
+          <span class="text-on-surface-variant text-sm">Member Since</span>
+          <span id="modal-joined" class="font-semibold text-sm ml-4">—</span>
         </div>
       </div>
       <div class="flex gap-3">
         <button onclick="closeProfileModal()"
           class="flex-1 bg-primary text-white py-3 rounded-xl font-semibold hover:bg-primary/90 transition-all">Close</button>
-        <button
+        <button onclick="handleLogout()"
+          class="px-4 py-3 rounded-xl border border-error text-error hover:bg-error/5 transition-all font-semibold text-sm">
+          Logout
+        </button>
+        <button onclick="window.location.href='profile.html'"
           class="px-4 py-3 rounded-xl border border-outline-variant text-on-surface-variant hover:bg-surface-container transition-all">
           <span class="material-symbols-outlined">edit</span>
         </button>
@@ -537,9 +533,7 @@
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════════
-     TRIP DETAIL MODAL
-═══════════════════════════════════════════════ -->
+  <!-- ═══ TRIP DETAIL MODAL ═══ -->
   <div id="tripModal"
     class="hidden fixed inset-0 bg-black/50 z-[100] flex items-center justify-center backdrop-blur-sm p-4 overflow-y-auto"
     onclick="if(event.target===this)closeTripModal()">
@@ -569,57 +563,8 @@
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════════
-     CREATE TRIP MODAL
-═══════════════════════════════════════════════ -->
-  <div id="createModal"
-    class="hidden fixed inset-0 bg-black/50 z-[100] flex items-center justify-center backdrop-blur-sm p-4"
-    onclick="if(event.target===this)closeCreateModal()">
-    <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl modal-enter">
-      <div class="flex justify-between items-center mb-6">
-        <h3 class="text-xl font-bold">Plan New Trip ✈️</h3>
-        <button onclick="closeCreateModal()" class="text-on-surface-variant hover:text-on-surface"><span
-            class="material-symbols-outlined">close</span></button>
-      </div>
-      <div class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-on-surface-variant mb-1">Destination</label>
-          <input id="create-dest" type="text" placeholder="Kerala, Hampi, Varanasi..."
-            class="w-full px-4 py-3 rounded-xl border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm" />
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-sm font-medium text-on-surface-variant mb-1">Start Date</label>
-            <input id="create-start" type="date"
-              class="w-full px-3 py-2.5 rounded-xl border border-outline-variant focus:outline-none text-sm" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-on-surface-variant mb-1">End Date</label>
-            <input id="create-end" type="date"
-              class="w-full px-3 py-2.5 rounded-xl border border-outline-variant focus:outline-none text-sm" />
-          </div>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-on-surface-variant mb-1">Budget (₹)</label>
-          <input id="create-budget" type="number" placeholder="50000"
-            class="w-full px-4 py-3 rounded-xl border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm" />
-        </div>
-      </div>
-      <div class="flex gap-3 mt-6">
-        <button onclick="closeCreateModal()"
-          class="flex-1 py-3 rounded-xl border border-outline-variant text-on-surface-variant hover:bg-surface-container transition-all font-semibold">Cancel</button>
-        <button onclick="createTrip()"
-          class="flex-1 py-3 rounded-xl bg-primary text-white font-semibold hover:bg-primary/90 transition-all active:scale-[0.98]">Create
-          Trip 🚀</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══════════════════════════════════════════════
-     FLOATING CHAT BOT
-═══════════════════════════════════════════════ -->
+  <!-- ═══ FLOATING CHAT BOT ═══ -->
   <div id="chat-widget" class="fixed bottom-6 right-6 z-[100] flex flex-col items-end">
-    <!-- Chat Window -->
     <div id="chat-window"
       class="hidden mb-4 w-96 h-[500px] rounded-2xl overflow-hidden shadow-2xl glass-card border border-white/40 flex flex-col transition-all duration-300 transform scale-95 opacity-0 origin-bottom-right">
       <div class="bg-primary p-4 flex justify-between items-center text-white">
@@ -633,8 +578,6 @@
       </div>
       <iframe src="chatbot.html" class="w-full flex-1 border-none" id="chat-iframe"></iframe>
     </div>
-
-    <!-- Toggle Button -->
     <button onclick="toggleChat()"
       class="w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-lg shadow-primary/30 hover:scale-110 active:scale-95 transition-all group">
       <span id="chat-icon"
@@ -643,171 +586,107 @@
   </div>
 
   <script>
-    // ── CHAT BOT FUNCTIONS ──────────────────────────────────────
-    function toggleChat() {
-      const chatWin = document.getElementById('chat-window');
-      const icon = document.getElementById('chat-icon');
-      const isHidden = chatWin.classList.contains('hidden');
+    // ── SUPABASE INIT ──────────────────────────────────────────
+    const SUPABASE_URL = 'https://lpuiwcvobxsfrzokmqbc.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxwdWl3Y3ZvYnhzZnJ6b2ttcWJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0NjcxNTUsImV4cCI6MjA5NDA0MzE1NX0.jfMj2IgEEEk_A0AB4IEUgsExHkTovHRycnFZIKW5774';
+    const { createClient } = supabase;
+    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-      if (isHidden) {
-        chatWin.classList.remove('hidden');
-        setTimeout(() => {
-          chatWin.classList.remove('scale-95', 'opacity-0');
-          chatWin.classList.add('scale-100', 'opacity-100');
-        }, 10);
-        icon.textContent = 'close';
-      } else {
-        chatWin.classList.remove('scale-100', 'opacity-100');
-        chatWin.classList.add('scale-95', 'opacity-0');
-        setTimeout(() => {
-          chatWin.classList.add('hidden');
-        }, 300);
-        icon.textContent = 'chat';
+    let currentUser = null;
+
+    // ── LOAD USER & INIT PAGE ─────────────────────────────────
+    async function initDashboard() {
+      const { data: { session } } = await sb.auth.getSession();
+
+      if (!session) {
+        // Not logged in — redirect to login
+        window.location.href = 'login.html';
+        return;
       }
+
+      currentUser = session.user;
+      const name = currentUser.user_metadata?.full_name
+        || currentUser.email?.split('@')[0]
+        || 'Explorer';
+      const email = currentUser.email || 'N/A';
+      const initials = name.charAt(0).toUpperCase();
+      const joined = new Date(currentUser.created_at).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
+
+      // Update sidebar
+      document.getElementById('sidebar-name').textContent = name;
+      document.getElementById('sidebar-avatar').textContent = initials;
+
+      // Update topbar avatar
+      document.getElementById('topbar-avatar').textContent = initials;
+
+      // Update welcome message
+      document.getElementById('welcome-msg').textContent = `Welcome back, ${name}! 👋`;
+
+      // Pre-fill modal fields
+      document.getElementById('modal-avatar').textContent = initials;
+      document.getElementById('modal-name').textContent = name;
+      document.getElementById('modal-email').textContent = email;
+      document.getElementById('modal-userid').textContent = currentUser.id;
+      document.getElementById('modal-joined').textContent = joined;
+
+      // Load saved trips from Supabase
+      loadSavedTrips();
     }
 
-    // ── TRIP DATA ──────────────────────────────────────────────
-    const tripsData = {
-      goldenTriangle: {
-        title: "The Golden Triangle",
-        dates: "Oct 12 – Oct 24, 2025 (12 days)",
-        status: "UPCOMING", statusColor: "bg-primary-container text-white",
-        heroImg: "https://images.unsplash.com/photo-1564507592333-c60657eea523?w=800&h=400&fit=crop",
-        budget: "₹1,45,000",
-        places: [
-          {
-            city: "Agra", emoji: "🏛️", days: "Day 1–3", items: [
-              "Taj Mahal — Best at sunrise; the white marble glows golden 🌅",
-              "Agra Fort — UNESCO-listed red sandstone Mughal fortress",
-              "Fatehpur Sikri — Ancient ghost city with the Buland Darwaza gate",
-              "Itmad-ud-Daulah — The 'Baby Taj', first all-marble Mughal structure",
-              "Mehtab Bagh — Garden across from Taj, best moonlight views"
-            ]
-          },
-          {
-            city: "Jaipur", emoji: "🎨", days: "Day 4–8", items: [
-              "Amber Fort — Hilltop fort with Sheesh Mahal (Mirror Palace) & elephant rides",
-              "Hawa Mahal — The Palace of Winds with 953 pink sandstone windows",
-              "City Palace — Rajasthani-Mughal architectural blend, still royal residence",
-              "Jantar Mantar — UNESCO site, world's largest stone sundial",
-              "Jal Mahal — Water Palace in the middle of Man Sagar Lake",
-              "Nahargarh Fort — Best panoramic sunset views of Jaipur"
-            ]
-          },
-          {
-            city: "Delhi", emoji: "🕌", days: "Day 9–12", items: [
-              "Red Fort — Historic monument, symbol of Indian independence",
-              "India Gate — Iconic war memorial and cultural landmark",
-              "Chandni Chowk — Old Delhi's bustling bazaar for street food & handicrafts",
-              "Humayun's Tomb — Magnificent Mughal architecture",
-              "Qutub Minar — UNESCO-listed 73m tall victory tower"
-            ]
-          }
-        ]
-      },
-      munnarTea: {
-        title: "Munnar Tea Trails",
-        dates: "Sep 10 – Sep 18, 2025 (8 days)",
-        status: "ACTIVE", statusColor: "bg-secondary-container text-on-secondary-container",
-        heroImg: "https://images.unsplash.com/photo-1609766934234-1e59184dde0e?w=800&h=400&fit=crop",
-        budget: "₹65,000",
-        places: [
-          {
-            city: "Munnar", emoji: "🌿", days: "Day 1–5", items: [
-              "Eravikulam National Park — Home to Nilgiri Tahr & Anamudi peak",
-              "Mattupetty Dam — Lake, boat rides, wild elephant sightings",
-              "Tea Museum — History & processing of Nilgiri tea",
-              "Kolukkumalai Tea Estate — World's highest tea plantation, sunrise views",
-              "Attukal Waterfalls — Scenic spot in lush jungles"
-            ]
-          },
-          {
-            city: "Ooty", emoji: "🚂", days: "Day 6–8", items: [
-              "Nilgiri Mountain Railway — UNESCO 'Toy Train' with breathtaking views 🚂",
-              "Botanical Gardens — 55 acres, 20-million-year-old fossilized tree",
-              "Ooty Lake — Boating surrounded by eucalyptus forests",
-              "Doddabetta Peak — Highest Nilgiri point with Telescope House",
-              "Pykara Waterfalls — Perfect for picnics & speedboat rides",
-              "Rose Garden — 20,000+ varieties, one of India's largest"
-            ]
-          }
-        ]
-      },
-      jaipurCity: {
-        title: "Jaipur Pink City",
-        dates: "Nov 5 – Nov 12, 2025 (7 days)",
-        status: "UPCOMING", statusColor: "bg-tertiary-container text-on-tertiary-container",
-        heroImg: "https://images.unsplash.com/photo-1477587458883-47145ed94245?w=800&h=400&fit=crop",
-        budget: "₹55,000",
-        places: [
-          {
-            city: "Jaipur", emoji: "🌸", days: "All 7 Days", items: [
-              "Amber Fort & Palace — Elephant rides up the hill, Sheesh Mahal mirror room",
-              "Hawa Mahal — UNESCO-listed Palace of Winds, iconic pink facade",
-              "City Palace Museum — Maharaja's residence with royal artifacts",
-              "Jantar Mantar Observatory — World's largest stone sundial",
-              "Jal Mahal — Romantic Water Palace at sunset",
-              "Nahargarh Fort & Sunset Point — Best city panorama",
-              "Johri Bazaar — Rajasthani jewelry, textiles & handicraft shopping"
-            ]
-          }
-        ]
-      },
-      goaBeach: {
-        title: "Goa Coastal Escape",
-        dates: "Dec 20 – Dec 28, 2025 (8 days)",
-        status: "UPCOMING", statusColor: "bg-primary-container text-white",
-        heroImg: "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=800&h=400&fit=crop",
-        budget: "₹80,000",
-        places: [
-          {
-            city: "North Goa", emoji: "🏖️", days: "Day 1–4", items: [
-              "Calangute & Baga Beach — Most popular beaches, water sports",
-              "Anjuna Beach — Famous flea market every Wednesday",
-              "Aguada Fort — 17th century Portuguese fort with sea views",
-              "Nightlife in Tito's Lane — Clubs, beach shacks & live music"
-            ]
-          },
-          {
-            city: "South Goa", emoji: "🌴", days: "Day 5–6", items: [
-              "Palolem Beach — Pristine crescent beach, kayaking",
-              "Colva Beach — Long white sandy stretch, peaceful",
-              "Dudhsagar Waterfalls — Spectacular 4-tiered waterfall, jeep safari"
-            ]
-          },
-          {
-            city: "Panjim", emoji: "⛪", days: "Day 7–8", items: [
-              "Fontainhas Latin Quarter — UNESCO heritage, Portuguese colonial homes",
-              "Old Goa Churches — Basilica of Bom Jesus, Se Cathedral",
-              "Goa State Museum — Cultural history of the state",
-              "Mandovi River Cruise — Evening cruise with cultural performance"
-            ]
-          }
-        ]
-      },
-      ootyHills: {
-        title: "Ooty Queen of Hills",
-        dates: "Jan 3 – Jan 10, 2026 (7 days)",
-        status: "UPCOMING", statusColor: "bg-secondary-container text-on-secondary-container",
-        heroImg: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop",
-        budget: "₹45,000",
-        places: [
-          {
-            city: "Ooty", emoji: "🏔️", days: "All 7 Days", items: [
-              "Nilgiri Mountain Railway — Toy Train from Mettupalayam, UNESCO heritage 🚂",
-              "Doddabetta Peak — Highest Nilgiri point, Telescope House",
-              "Botanical Gardens — 55 acres, prehistoric fossilized tree trunk",
-              "Ooty Lake — Pedal boat & rowing in scenic surroundings",
-              "Pykara Lake & Waterfalls — Serene picnic spot with boat rides",
-              "Rose Garden — 20,000 varieties across 10 acres",
-              "Tea Factory Tour — See how Nilgiri tea goes from leaf to cup"
-            ]
-          }
-        ]
-      }
-    };
+    // ── LOAD SAVED TRIPS FROM SUPABASE ────────────────────────
+    async function loadSavedTrips() {
+      if (!currentUser) return;
 
-    // ── MODAL FUNCTIONS ────────────────────────────────────────
+      const { data: trips, error } = await sb
+        .from('trips')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .order('created_at', { ascending: false });
+
+      const section = document.getElementById('saved-trips-section');
+      const grid = document.getElementById('saved-trips-grid');
+
+      if (error || !trips || trips.length === 0) {
+        section.style.display = 'none';
+        return;
+      }
+
+      section.style.display = 'block';
+      const images = [
+        'https://images.unsplash.com/photo-1564507592333-c60657eea523?w=600&h=400&fit=crop',
+        'https://images.unsplash.com/photo-1609766934234-1e59184dde0e?w=600&h=400&fit=crop',
+        'https://images.unsplash.com/photo-1477587458883-47145ed94245?w=600&h=400&fit=crop',
+        'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=600&h=400&fit=crop',
+        'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop',
+      ];
+
+      grid.innerHTML = trips.map((trip, i) => `
+        <div class="trip-card group relative h-[280px] rounded-3xl overflow-hidden glass-card shadow-md cursor-pointer border border-primary/10">
+          <img class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-80"
+            src="${images[i % images.length]}" alt="${trip.title}"/>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+          <div class="absolute top-4 right-4 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-white text-[10px] font-bold">SAVED</div>
+          <div class="absolute bottom-0 left-0 w-full p-6">
+            <h4 class="text-xl font-bold text-white">${trip.title}</h4>
+            <div class="flex items-center justify-between mt-2">
+              <p class="text-white/70 text-sm flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm">location_on</span> ${trip.destination || 'Unknown'}
+              </p>
+              <p class="text-white/60 text-xs">${trip.start_date || ''} ${trip.end_date ? '→ ' + trip.end_date : ''}</p>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // ── LOGOUT ────────────────────────────────────────────────
+    async function handleLogout() {
+      await sb.auth.signOut();
+      localStorage.removeItem('traveloop_user');
+      window.location.href = 'login.html';
+    }
+
+    // ── PROFILE MODAL ─────────────────────────────────────────
     function openProfileModal() {
       document.getElementById('profileModal').classList.remove('hidden');
     }
@@ -815,312 +694,167 @@
       document.getElementById('profileModal').classList.add('hidden');
     }
 
+    // ── TRIP MODAL ────────────────────────────────────────────
+    const tripsData = {
+      goldenTriangle: {
+        title: "The Golden Triangle", dates: "Oct 12 – Oct 24, 2025 (12 days)",
+        status: "UPCOMING", statusColor: "bg-primary-container text-white",
+        heroImg: "https://images.unsplash.com/photo-1564507592333-c60657eea523?w=800&h=400&fit=crop",
+        budget: "₹1,45,000",
+        places: [
+          { city: "Agra", emoji: "🏛️", days: "Day 1–3", items: ["Taj Mahal — Best at sunrise", "Agra Fort — UNESCO Mughal fortress", "Fatehpur Sikri — Ancient ghost city", "Itmad-ud-Daulah — Baby Taj", "Mehtab Bagh — Moonlight views"] },
+          { city: "Jaipur", emoji: "🎨", days: "Day 4–8", items: ["Amber Fort — Elephant rides & Sheesh Mahal", "Hawa Mahal — Palace of Winds", "City Palace — Rajasthani-Mughal blend", "Jantar Mantar — World's largest sundial", "Jal Mahal — Water Palace"] },
+          { city: "Delhi", emoji: "🕌", days: "Day 9–12", items: ["Red Fort — Symbol of independence", "India Gate — War memorial", "Chandni Chowk — Street food & bazaars", "Humayun's Tomb — Mughal architecture", "Qutub Minar — 73m victory tower"] }
+        ]
+      },
+      munnarTea: {
+        title: "Munnar Tea Trails", dates: "Sep 10 – Sep 18, 2025 (8 days)",
+        status: "ACTIVE", statusColor: "bg-secondary-container text-on-secondary-container",
+        heroImg: "https://images.unsplash.com/photo-1609766934234-1e59184dde0e?w=800&h=400&fit=crop",
+        budget: "₹65,000",
+        places: [
+          { city: "Munnar", emoji: "🌿", days: "Day 1–5", items: ["Eravikulam National Park — Nilgiri Tahr", "Mattupetty Dam — Boat rides & elephants", "Tea Museum — History of Nilgiri tea", "Kolukkumalai Tea Estate — World's highest", "Attukal Waterfalls — Jungle scenery"] },
+          { city: "Ooty", emoji: "🚂", days: "Day 6–8", items: ["Nilgiri Mountain Railway — UNESCO toy train", "Botanical Gardens — 55 acres", "Ooty Lake — Boating", "Doddabetta Peak — Highest Nilgiri point", "Rose Garden — 20,000+ varieties"] }
+        ]
+      },
+      jaipurCity: {
+        title: "Jaipur Pink City", dates: "Nov 5 – Nov 12, 2025 (7 days)",
+        status: "UPCOMING", statusColor: "bg-tertiary-container text-on-tertiary-container",
+        heroImg: "https://images.unsplash.com/photo-1477587458883-47145ed94245?w=800&h=400&fit=crop",
+        budget: "₹55,000",
+        places: [
+          { city: "Jaipur", emoji: "🌸", days: "All 7 Days", items: ["Amber Fort — Elephant rides", "Hawa Mahal — Palace of Winds", "City Palace Museum", "Jantar Mantar Observatory", "Jal Mahal — Sunset views", "Nahargarh Fort", "Johri Bazaar — Shopping"] }
+        ]
+      },
+      goaBeach: {
+        title: "Goa Coastal Escape", dates: "Dec 20 – Dec 28, 2025 (8 days)",
+        status: "UPCOMING", statusColor: "bg-primary-container text-white",
+        heroImg: "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=800&h=400&fit=crop",
+        budget: "₹80,000",
+        places: [
+          { city: "North Goa", emoji: "🏖️", days: "Day 1–4", items: ["Calangute & Baga Beach", "Anjuna Beach — Wednesday flea market", "Aguada Fort — Portuguese fort", "Tito's Lane — Nightlife"] },
+          { city: "South Goa", emoji: "🌴", days: "Day 5–6", items: ["Palolem Beach — Kayaking", "Colva Beach — Peaceful", "Dudhsagar Waterfalls — Jeep safari"] },
+          { city: "Panjim", emoji: "⛪", days: "Day 7–8", items: ["Fontainhas Latin Quarter", "Old Goa Churches", "Goa State Museum", "Mandovi River Cruise"] }
+        ]
+      },
+      ootyHills: {
+        title: "Ooty Queen of Hills", dates: "Jan 3 – Jan 10, 2026 (7 days)",
+        status: "UPCOMING", statusColor: "bg-secondary-container text-on-secondary-container",
+        heroImg: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop",
+        budget: "₹45,000",
+        places: [
+          { city: "Ooty", emoji: "🏔️", days: "All 7 Days", items: ["Nilgiri Mountain Railway 🚂", "Doddabetta Peak", "Botanical Gardens", "Ooty Lake", "Pykara Lake & Waterfalls", "Rose Garden", "Tea Factory Tour"] }
+        ]
+      }
+    };
+
     function openTripModal(key) {
       const trip = tripsData[key];
       if (!trip) return;
-
       document.getElementById('tripModalTitle').textContent = trip.title;
       document.getElementById('tripModalDates').textContent = trip.dates + '  ·  Budget: ' + trip.budget;
       document.getElementById('tripModalBadge').className = 'inline-block px-3 py-1 rounded-full text-xs font-bold mb-2 ' + trip.statusColor;
       document.getElementById('tripModalBadge').textContent = trip.status;
-
-      // Set hero image
       const hero = document.getElementById('tripModalHero');
       hero.style.backgroundImage = `url('${trip.heroImg}')`;
       hero.style.backgroundSize = 'cover';
       hero.style.backgroundPosition = 'center';
-
       let html = '';
       trip.places.forEach((place, i) => {
         const colors = ['border-primary', 'border-secondary', 'border-tertiary'];
-        html += `
-      <div class="border-l-4 ${colors[i % 3]} pl-4 py-1">
-        <div class="flex items-center gap-2 mb-3">
-          <span class="text-xl">${place.emoji}</span>
-          <h4 class="text-lg font-bold text-on-surface">${place.city}</h4>
-          <span class="ml-auto text-xs px-2 py-1 bg-surface-container rounded-full text-on-surface-variant">${place.days}</span>
-        </div>
-        <ul class="space-y-2">
-    `;
+        html += `<div class="border-l-4 ${colors[i % 3]} pl-4 py-1">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-xl">${place.emoji}</span>
+            <h4 class="text-lg font-bold text-on-surface">${place.city}</h4>
+            <span class="ml-auto text-xs px-2 py-1 bg-surface-container rounded-full text-on-surface-variant">${place.days}</span>
+          </div>
+          <ul class="space-y-2">`;
         place.items.forEach(item => {
-          html += `<li class="flex gap-2 text-sm text-on-surface-variant">
-        <span class="text-primary mt-0.5 flex-shrink-0">▸</span>
-        <span>${item}</span>
-      </li>`;
+          html += `<li class="flex gap-2 text-sm text-on-surface-variant"><span class="text-primary mt-0.5 flex-shrink-0">▸</span><span>${item}</span></li>`;
         });
         html += `</ul></div>`;
       });
-
       document.getElementById('tripModalContent').innerHTML = html;
       document.getElementById('tripModal').classList.remove('hidden');
     }
-    function closeTripModal() {
-      document.getElementById('tripModal').classList.add('hidden');
-    }
+    function closeTripModal() { document.getElementById('tripModal').classList.add('hidden'); }
 
-    function openCreateModal() {
-      document.getElementById('createModal').classList.remove('hidden');
-    }
-    function closeCreateModal() {
-      document.getElementById('createModal').classList.add('hidden');
-    }
-    async function createTrip() {
-      const destination = document.getElementById('create-dest').value;
-      const start_date = document.getElementById('create-start').value;
-      const end_date = document.getElementById('create-end').value;
-      const budget_limit = document.getElementById('create-budget').value;
-
-      if (!destination) return alert('Destination is required!');
-
-      const btn = event.target;
-      const originalText = btn.textContent;
-      btn.textContent = 'Saving...';
-      btn.disabled = true;
-
-      try {
-        const newTrip = {
-          id: Date.now(),
-          destination,
-          start_date,
-          end_date,
-          budget_limit: parseFloat(budget_limit) || 0,
-          created_at: new Date().toISOString(),
-          image: "https://images.unsplash.com/photo-1514222139-b57c44ce0fd6?w=600&h=450&fit=crop"
-        };
-
-        const savedTrips = JSON.parse(localStorage.getItem('saved_trips') || '[]');
-        savedTrips.unshift({
-            ...newTrip,
-            from: 'Your Location',
-            to: destination,
-            distance: 'TBD',
-            date: start_date
-        });
-        localStorage.setItem('saved_trips', JSON.stringify(savedTrips));
-
-        alert('Trip created successfully! 🎉');
-        closeCreateModal();
-        renderSavedTrips(); // Refresh list
-      } catch (err) {
-        alert('Error creating trip: ' + err.message);
-      } finally {
-        btn.textContent = originalText;
-        btn.disabled = false;
+    // ── CHAT ──────────────────────────────────────────────────
+    function toggleChat() {
+      const chatWin = document.getElementById('chat-window');
+      const icon = document.getElementById('chat-icon');
+      const isHidden = chatWin.classList.contains('hidden');
+      if (isHidden) {
+        chatWin.classList.remove('hidden');
+        setTimeout(() => { chatWin.classList.remove('scale-95', 'opacity-0'); chatWin.classList.add('scale-100', 'opacity-100'); }, 10);
+        icon.textContent = 'close';
+      } else {
+        chatWin.classList.remove('scale-100', 'opacity-100');
+        chatWin.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => { chatWin.classList.add('hidden'); }, 300);
+        icon.textContent = 'chat';
       }
     }
 
-    // ── AI SMART PLANNER LOGIC ────────────────────────────────
+    // ── AI PLANNER ────────────────────────────────────────────
     const destData = {
-      "Agra": {
-        desc: "The Mughal Heritage",
-        image: "https://images.unsplash.com/photo-1564507592333-c60657eea523?w=800&h=400&fit=crop",
-        spots: [
-          { name: "Taj Mahal", desc: "The world-famous white marble mausoleum; best visited at sunrise." },
-          { name: "Agra Fort", desc: "A massive UNESCO-listed red sandstone fortress." },
-          { name: "Fatehpur Sikri", desc: "Ancient 'ghost city' with the stunning Buland Darwaza." },
-          { name: "Itmad-ud-Daulah", desc: "The 'Baby Taj', first Mughal structure built of marble." },
-          { name: "Mehtab Bagh", desc: "Moonlight views across the river from the Taj Mahal." }
-        ],
-        hotels: {
-          economy: { name: "The Hosteller Agra", price: "₹1,200", stars: 2 },
-          comfort: { name: "Radisson Hotel Agra", price: "₹6,500", stars: 4 },
-          luxury: { name: "The Oberoi Amarvilas", price: "₹45,000", stars: 5 }
-        }
-      },
-      "Jaipur": {
-        desc: "The Pink City",
-        image: "https://images.unsplash.com/photo-1477587458883-47145ed94245?w=800&h=400&fit=crop",
-        spots: [
-          { name: "Amber Fort", desc: "Hilltop fort famous for elephant rides and Sheesh Mahal." },
-          { name: "Hawa Mahal", desc: "Palace of Winds with iconic honeycomb pink facade." },
-          { name: "City Palace", desc: "Complex blending Rajasthani and Mughal architecture." },
-          { name: "Jantar Mantar", desc: "UNESCO site with world's largest stone sundial." },
-          { name: "Jal Mahal", desc: "Water Palace in the middle of Man Sagar Lake." },
-          { name: "Nahargarh Fort", desc: "Best panoramic sunset views of the city." }
-        ],
-        hotels: {
-          economy: { name: "Zostel Jaipur", price: "₹1,000", stars: 2 },
-          comfort: { name: "ITC Rajputana", price: "₹12,000", stars: 5 },
-          luxury: { name: "Rambagh Palace", price: "₹75,000", stars: 5 }
-        }
-      },
-      "Munnar": {
-        desc: "The Tea Country",
-        image: "https://images.unsplash.com/photo-1609766934234-1e59184dde0e?w=800&h=400&fit=crop",
-        spots: [
-          { name: "Eravikulam National Park", desc: "Home to Nilgiri Tahr and Anamudi peak." },
-          { name: "Mattupetty Dam", desc: "Beautiful lake, boat rides, and wild elephants." },
-          { name: "Tea Museum", desc: "History and processing of Nilgiri tea." },
-          { name: "Kolukkumalai Tea Estate", desc: "World's highest tea plantation with sunrise views." },
-          { name: "Attukal Waterfalls", desc: "Scenic spot surrounded by lush jungles." }
-        ],
-        hotels: {
-          economy: { name: "Munnar Inn", price: "₹1,500", stars: 2 },
-          comfort: { name: "The Fog Munnar", price: "₹8,000", stars: 4 },
-          luxury: { name: "Blanket Hotel & Spa", price: "₹18,000", stars: 5 }
-        }
-      },
-      "Ooty": {
-        desc: "Queen of Hill Stations",
-        image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop",
-        spots: [
-          { name: "Nilgiri Mountain Railway", desc: "UNESCO 'Toy Train' ride with breathtaking views." },
-          { name: "Botanical Gardens", desc: "55-acre garden with 20-million-year-old fossilized tree." },
-          { name: "Ooty Lake", desc: "Picturesque artificial lake popular for boating." },
-          { name: "Doddabetta Peak", desc: "Highest point in Nilgiris with Telescope House." },
-          { name: "Pykara Waterfalls", desc: "Serene area perfect for picnics and speedboats." },
-          { name: "Rose Garden", desc: "Largest in India with 20,000 varieties." }
-        ],
-        hotels: {
-          economy: { name: "Reflections Guesthouse", price: "₹1,200", stars: 2 },
-          comfort: { name: "Sterling Ooty Fern Hill", price: "₹7,500", stars: 4 },
-          luxury: { name: "Savoy, Ooty - IHCL SeleQtions", price: "₹22,000", stars: 5 }
-        }
-      }
+      "Agra": { spots: [{ name: "Taj Mahal", desc: "White marble mausoleum; best at sunrise." }, { name: "Agra Fort", desc: "UNESCO red sandstone fortress." }, { name: "Fatehpur Sikri", desc: "Ancient ghost city." }, { name: "Itmad-ud-Daulah", desc: "Baby Taj, first all-marble Mughal structure." }, { name: "Mehtab Bagh", desc: "Moonlight views of the Taj." }], hotels: { economy: { name: "The Hosteller Agra", price: "₹1,200", stars: 2 }, comfort: { name: "Radisson Hotel Agra", price: "₹6,500", stars: 4 }, luxury: { name: "The Oberoi Amarvilas", price: "₹45,000", stars: 5 } } },
+      "Jaipur": { spots: [{ name: "Amber Fort", desc: "Hilltop fort with Sheesh Mahal." }, { name: "Hawa Mahal", desc: "Palace of Winds." }, { name: "City Palace", desc: "Rajasthani-Mughal architecture." }, { name: "Jantar Mantar", desc: "World's largest stone sundial." }, { name: "Jal Mahal", desc: "Water Palace in Man Sagar Lake." }, { name: "Nahargarh Fort", desc: "Panoramic sunset views." }], hotels: { economy: { name: "Zostel Jaipur", price: "₹1,000", stars: 2 }, comfort: { name: "ITC Rajputana", price: "₹12,000", stars: 5 }, luxury: { name: "Rambagh Palace", price: "₹75,000", stars: 5 } } },
+      "Munnar": { spots: [{ name: "Eravikulam National Park", desc: "Home to Nilgiri Tahr." }, { name: "Mattupetty Dam", desc: "Lake, boat rides, wild elephants." }, { name: "Tea Museum", desc: "Nilgiri tea history." }, { name: "Kolukkumalai Tea Estate", desc: "World's highest tea plantation." }, { name: "Attukal Waterfalls", desc: "Lush jungle scenery." }], hotels: { economy: { name: "Munnar Inn", price: "₹1,500", stars: 2 }, comfort: { name: "The Fog Munnar", price: "₹8,000", stars: 4 }, luxury: { name: "Blanket Hotel & Spa", price: "₹18,000", stars: 5 } } },
+      "Ooty": { spots: [{ name: "Nilgiri Mountain Railway", desc: "UNESCO Toy Train." }, { name: "Botanical Gardens", desc: "55 acres, prehistoric tree." }, { name: "Ooty Lake", desc: "Popular for boating." }, { name: "Doddabetta Peak", desc: "Highest Nilgiri point." }, { name: "Pykara Waterfalls", desc: "Picnic and speedboats." }, { name: "Rose Garden", desc: "20,000 varieties." }], hotels: { economy: { name: "Reflections Guesthouse", price: "₹1,200", stars: 2 }, comfort: { name: "Sterling Ooty Fern Hill", price: "₹7,500", stars: 4 }, luxury: { name: "Savoy Ooty - IHCL SeleQtions", price: "₹22,000", stars: 5 } } }
     };
 
     function generateAIPlan() {
       const dest = document.getElementById('plan-dest').value;
       const budget = parseFloat(document.getElementById('plan-budget').value);
       const days = parseInt(document.getElementById('plan-days').value);
-
-      if (!budget || !days) {
-        alert("Please enter both budget and number of days! 💰");
-        return;
-      }
-
+      if (!budget || !days) { alert("Please enter both budget and number of days! 💰"); return; }
       const data = destData[dest];
-      const output = document.getElementById('ai-plan-output');
-      const sidebar = document.getElementById('ai-plan-sidebar');
-      const timeline = document.getElementById('ai-plan-timeline');
-
-      // Determine Budget Tier
       let tier = 'economy';
       if (budget / days > 15000) tier = 'luxury';
       else if (budget / days > 4000) tier = 'comfort';
-
       const hotel = data.hotels[tier];
-
-      // Build Sidebar (Hotel & Summary)
-      sidebar.innerHTML = `
+      document.getElementById('ai-plan-sidebar').innerHTML = `
         <div class="bg-primary/5 p-6 rounded-3xl border border-primary/10">
-            <h4 class="text-xs font-bold text-primary uppercase tracking-widest mb-4">Recommended Stay</h4>
-            <div class="flex items-center gap-4 mb-4">
-                <div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-primary shadow-sm">
-                    <span class="material-symbols-outlined">hotel</span>
-                </div>
-                <div>
-                    <p class="font-bold text-on-surface">${hotel.name}</p>
-                    <p class="text-xs text-on-surface-variant">${"★".repeat(hotel.stars)} · ${tier.toUpperCase()}</p>
-                </div>
+          <h4 class="text-xs font-bold text-primary uppercase tracking-widest mb-4">Recommended Stay</h4>
+          <div class="flex items-center gap-4 mb-4">
+            <div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-primary shadow-sm"><span class="material-symbols-outlined">hotel</span></div>
+            <div><p class="font-bold text-on-surface">${hotel.name}</p><p class="text-xs text-on-surface-variant">${"★".repeat(hotel.stars)} · ${tier.toUpperCase()}</p></div>
+          </div>
+          <div class="flex justify-between items-center py-3 border-t border-primary/10">
+            <span class="text-xs text-on-surface-variant">Est. Nightly Rate</span>
+            <span class="font-bold text-secondary">${hotel.price}</span>
+          </div>
+          <div class="pt-4">
+            <p class="text-[10px] font-bold text-on-surface-variant uppercase mb-2">Budget Analysis</p>
+            <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+              <div class="bg-primary h-full" style="width:${tier === 'luxury' ? '90%' : tier === 'comfort' ? '60%' : '30%'}"></div>
             </div>
-            <div class="flex justify-between items-center py-3 border-t border-primary/10">
-                <span class="text-xs text-on-surface-variant">Est. Nightly Rate</span>
-                <span class="font-bold text-secondary">${hotel.price}</span>
-            </div>
-            <div class="pt-4">
-                <p class="text-[10px] font-bold text-on-surface-variant uppercase mb-2">Budget Analysis</p>
-                <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                    <div class="bg-primary h-full" style="width: ${tier === 'luxury' ? '90%' : tier === 'comfort' ? '60%' : '30%'}"></div>
-                </div>
-                <p class="text-[10px] text-on-surface-variant mt-1 text-center">Plan optimized for ${tier} tier</p>
-            </div>
+            <p class="text-[10px] text-on-surface-variant mt-1 text-center">Optimized for ${tier} tier</p>
+          </div>
         </div>
-        
         <div class="bg-secondary/5 p-6 rounded-3xl border border-secondary/10">
-            <h4 class="text-xs font-bold text-secondary uppercase tracking-widest mb-2">AI Traveler Insight</h4>
-            <p class="text-xs leading-relaxed text-on-surface-variant">
-                For a ${days}-day trip to ${dest}, we've focused on the top ${Math.min(data.spots.length, days * 2)} must-visit heritage sites. 
-                Staying at <strong>${hotel.name}</strong> will keep you central to the action while matching your ₹${budget.toLocaleString()} budget.
-            </p>
-        </div>
-    `;
-
-      // Build Timeline (Day-wise)
+          <h4 class="text-xs font-bold text-secondary uppercase tracking-widest mb-2">AI Traveler Insight</h4>
+          <p class="text-xs leading-relaxed text-on-surface-variant">For a ${days}-day trip to ${dest}, we focused on the top ${Math.min(data.spots.length, days * 2)} must-visit spots. Staying at <strong>${hotel.name}</strong> keeps you central and matches your ₹${budget.toLocaleString()} budget.</p>
+        </div>`;
       let timelineHTML = `<h4 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-4 ml-2">Day-by-Day Itinerary</h4>`;
-
       for (let i = 1; i <= days; i++) {
-        const spotIdx1 = (i - 1) * 2 % data.spots.length;
-        const spotIdx2 = ((i - 1) * 2 + 1) % data.spots.length;
-        const spot1 = data.spots[spotIdx1];
-        const spot2 = data.spots[spotIdx2];
-
-        timelineHTML += `
-            <div class="flex gap-4">
-                <div class="flex flex-col items-center">
-                    <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold shrink-0">0${i}</div>
-                    <div class="w-0.5 flex-1 bg-primary/20 my-1"></div>
-                </div>
-                <div class="flex-1 pb-6">
-                    <h5 class="font-bold text-on-surface mb-3">Day ${i}: ${i === 1 ? 'Arrival & Heritage' : 'Deep Exploration'}</h5>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div class="glass-card p-4 rounded-2xl bg-white/40">
-                            <p class="text-[10px] font-bold text-primary uppercase mb-1">Morning</p>
-                            <p class="font-bold text-sm">${spot1.name}</p>
-                            <p class="text-xs text-on-surface-variant mt-1">${spot1.desc}</p>
-                        </div>
-                        <div class="glass-card p-4 rounded-2xl bg-white/40">
-                            <p class="text-[10px] font-bold text-secondary uppercase mb-1">Afternoon</p>
-                            <p class="font-bold text-sm">${spot2.name}</p>
-                            <p class="text-xs text-on-surface-variant mt-1">${spot2.desc}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
+        const s1 = data.spots[(i - 1) * 2 % data.spots.length];
+        const s2 = data.spots[((i - 1) * 2 + 1) % data.spots.length];
+        timelineHTML += `<div class="flex gap-4"><div class="flex flex-col items-center"><div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold shrink-0">0${i}</div><div class="w-0.5 flex-1 bg-primary/20 my-1"></div></div><div class="flex-1 pb-6"><h5 class="font-bold text-on-surface mb-3">Day ${i}: ${i === 1 ? 'Arrival & Heritage' : 'Deep Exploration'}</h5><div class="grid grid-cols-1 md:grid-cols-2 gap-3"><div class="glass-card p-4 rounded-2xl bg-white/40"><p class="text-[10px] font-bold text-primary uppercase mb-1">Morning</p><p class="font-bold text-sm">${s1.name}</p><p class="text-xs text-on-surface-variant mt-1">${s1.desc}</p></div><div class="glass-card p-4 rounded-2xl bg-white/40"><p class="text-[10px] font-bold text-secondary uppercase mb-1">Afternoon</p><p class="font-bold text-sm">${s2.name}</p><p class="text-xs text-on-surface-variant mt-1">${s2.desc}</p></div></div></div></div>`;
       }
-
-      timeline.innerHTML = timelineHTML;
-      output.classList.remove('hidden');
-
-      // Scroll to results
-      output.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.getElementById('ai-plan-timeline').innerHTML = timelineHTML;
+      document.getElementById('ai-plan-output').classList.remove('hidden');
+      document.getElementById('ai-plan-output').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    // ── SAVED TRIPS FROM LOCALSTORAGE ──────────────────────────
-    function renderSavedTrips() {
-      const saved = JSON.parse(localStorage.getItem('saved_trips') || '[]');
-      const section = document.getElementById('saved-trips-section');
-      const grid = document.getElementById('saved-trips-grid');
-
-      if (saved.length === 0) {
-        section.style.display = 'none';
-        return;
-      }
-
-      section.style.display = 'block';
-      grid.innerHTML = saved.map(trip => `
-    <div class="trip-card group relative h-[280px] rounded-3xl overflow-hidden glass-card shadow-md cursor-pointer border border-primary/10">
-      <img class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-80"
-        src="${trip.image}" alt="Saved Trip"/>
-      <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-      <div class="absolute top-4 right-4 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-white text-[10px] font-bold">
-        SAVED ROUTE
-      </div>
-      <div class="absolute bottom-0 left-0 w-full p-6">
-        <h4 class="text-xl font-bold text-white">${trip.from} to ${trip.to}</h4>
-        <div class="flex items-center justify-between mt-2">
-          <p class="text-white/70 text-sm flex items-center gap-1">
-            <span class="material-symbols-outlined text-sm">straighten</span> ${trip.distance} km
-          </p>
-          <p class="text-white/60 text-xs">${trip.date}</p>
-        </div>
-      </div>
-    </div>
-  `).join('');
-    }
-
-    // Initial Call
-    renderSavedTrips();
-
-    // Keyboard ESC to close
+    // ── ESC TO CLOSE ──────────────────────────────────────────
     document.addEventListener('keydown', e => {
-      if (e.key === 'Escape') {
-        closeProfileModal();
-        closeTripModal();
-        closeCreateModal();
-      }
+      if (e.key === 'Escape') { closeProfileModal(); closeTripModal(); }
     });
+
+    // ── INIT ──────────────────────────────────────────────────
+    initDashboard();
   </script>
 </body>
 
