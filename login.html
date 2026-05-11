@@ -48,16 +48,7 @@
         </div>
     </div>
 
-    <!-- Supabase CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <script>
-        // ✅ Your Supabase credentials
-        const SUPABASE_URL = 'https://zibslyxkfixiqyuczrfp.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_nd9sX-EYwAqKmF5CjxTmIQ_wWjSYtgC';
-
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
         let isLogin = true;
 
         function toggleAuth() {
@@ -79,30 +70,23 @@
             btn.textContent = 'Please wait...';
             document.getElementById('submit-btn').disabled = true;
 
-            if (isLogin) {
-                // LOGIN
-                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            // Mock local authentication
+            setTimeout(() => {
+                const user = {
+                    email: email,
+                    name: email.split('@')[0],
+                    id: 'local_' + Date.now()
+                };
 
-                if (error) {
-                    alert(error.message);
-                } else {
-                    localStorage.setItem('traveloop_user', JSON.stringify(data.user));
-                    window.location.href = 'dashboard.html';
+                localStorage.setItem('traveloop_user', JSON.stringify(user));
+                localStorage.setItem('traveloop_token', 'local_session_' + Date.now());
+                
+                if (!isLogin) {
+                    alert('✅ Account created locally! Logging you in...');
                 }
-            } else {
-                // SIGNUP — Supabase sends verification email automatically
-                const { data, error } = await supabase.auth.signUp({ email, password });
-
-                if (error) {
-                    alert(error.message);
-                } else {
-                    alert('✅ Account created! Check your email to verify your account.');
-                    toggleAuth(); // switch back to login
-                }
-            }
-
-            btn.textContent = isLogin ? 'Sign In' : 'Create Account';
-            document.getElementById('submit-btn').disabled = false;
+                
+                window.location.href = 'dashboard.html';
+            }, 800);
         });
     </script>
 </body>

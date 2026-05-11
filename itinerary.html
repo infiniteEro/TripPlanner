@@ -110,11 +110,8 @@
       transition: stroke-dashoffset 0.3s ease;
     }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-    const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const user = { name: 'Explorer', email: 'explorer@traveloop.com' };
   </script>
 </head>
 <body class="bg-background font-body-md text-on-background min-h-screen">
@@ -157,11 +154,11 @@
 <img alt="User profile" data-alt="A professional portrait of a modern traveler in a brightly lit studio. The lighting is soft and airy, creating a premium light-mode aesthetic. The individual has a friendly expression, suggesting a sense of exploration and excitement. The color palette is clean and neutral with soft highlights on the skin and hair." src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80&h=80&fit=crop&crop=face"/>
 </div>
     <div>
-        <p class="font-title-md text-sm text-on-surface">Alex Rivera</p>
+        <p class="font-title-md text-sm text-on-surface">Explorer</p>
         <p class="text-xs text-on-surface-variant">Travel Enthusiast</p>
     </div>
-    <button onclick="localStorage.clear(); window.location.href='login.html';" class="ml-auto w-8 h-8 flex items-center justify-center text-error hover:bg-error/10 rounded-full transition-all" title="Sign Out">
-        <span class="material-symbols-outlined text-sm">logout</span>
+    <button class="ml-auto w-8 h-8 flex items-center justify-center text-primary/50 hover:bg-primary/10 rounded-full transition-all" title="Settings">
+        <span class="material-symbols-outlined text-sm">settings</span>
     </button>
 </div>
 </div>
@@ -239,8 +236,8 @@
   <div class="max-w-4xl mx-auto">
     <header class="mb-12 flex justify-between items-end">
       <div>
-        <h3 class="font-display-lg text-headline-lg text-on-surface" id="itinerary-title">Your Journey Flow</h3>
-        <p class="text-on-surface-variant mt-2 font-body-lg">Designing the perfect sequence of experiences across India.</p>
+        <h1 class="font-display-lg text-4xl font-bold text-on-surface">Welcome back, Explorer. 👋</h1>
+        <p class="text-on-surface-variant mt-2 text-lg">You have <strong class="text-primary">3 upcoming adventures</strong> across India.</p>
       </div>
       <div class="flex p-1 bg-surface-container-low rounded-2xl border border-white/40">
         <button onclick="setViewMode('builder')" id="btn-builder" class="px-6 py-2 rounded-xl text-sm font-bold bg-primary text-white shadow-lg shadow-primary/20 transition-all">Edit Mode</button>

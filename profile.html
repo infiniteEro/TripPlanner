@@ -117,22 +117,15 @@
 
     <script>
         function loadUserData() {
-            const userStr = localStorage.getItem('traveloop_user');
-            if (userStr) {
-                const user = JSON.parse(userStr);
-                document.getElementById('user-name').textContent = user.name;
-                document.getElementById('user-email').textContent = user.email;
-                document.getElementById('display-name-input').value = user.name;
-                document.getElementById('display-email-input').value = user.email;
-            } else {
-                window.location.href = 'login.html';
-            }
+            document.getElementById('user-name').textContent = 'Explorer';
+            document.getElementById('user-email').textContent = 'explorer@traveloop.com';
+            document.getElementById('display-name-input').value = 'Explorer';
+            document.getElementById('display-email-input').value = 'explorer@traveloop.com';
         }
 
         function logout() {
-            localStorage.removeItem('traveloop_token');
-            localStorage.removeItem('traveloop_user');
-            window.location.href = 'login.html';
+            // No longer needed in static mode
+            window.location.href = 'index.html';
         }
 
         loadUserData();

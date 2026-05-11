@@ -1,51 +1,45 @@
 /**
- * Traveloop Supabase API Bridge
- * Direct database connectivity for cloud sync.
+ * Traveloop Local API Bridge
+ * Reverted to local-first architecture using localStorage.
  */
-
-const SUPABASE_URL = 'https://zibslyxkfixiqyuczrfp.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_nd9sX-EYwAqKmF5CjxTmIQ_wWjSYtgC';
-
-// Initialize Supabase Client
-const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
 const TravelAPI = {
     /**
      * TRIPS
      */
     async getTrips() {
-        if (!supabase) return this.getLocal('trips');
-        const { data, error } = await supabase.from('trips').select('*');
-        if (error) {
-            console.error('Supabase Error:', error);
-            return this.getLocal('trips');
-        }
-        return data;
+        return this.getLocal('trips');
     },
 
     async saveTrip(trip) {
-        if (!supabase) return this.setLocal('trips', trip);
-        const { data, error } = await supabase.from('trips').insert([trip]);
-        if (error) console.error('Save Error:', error);
-        return data;
+        return this.setLocal('trips', trip);
+    },
+
+    /**
+     * ITINERARY
+     */
+    async getItinerary() {
+        const data = localStorage.getItem('traveloop_itinerary');
+        return data ? JSON.parse(data) : { stops: [] };
+    },
+
+    async saveItinerary(itinerary) {
+        localStorage.setItem('traveloop_itinerary', JSON.stringify(itinerary));
     },
 
     /**
      * EXPENSES
      */
     async getExpenses() {
-        if (!supabase) return this.getLocal('expenses');
-        const { data, error } = await supabase.from('expenses').select('*');
-        return data || [];
+        return this.getLocal('expenses');
     },
 
     async saveExpense(expense) {
-        if (!supabase) return this.setLocal('expenses', expense);
-        await supabase.from('expenses').insert([expense]);
+        return this.setLocal('expenses', expense);
     },
 
     /**
-     * FALLBACK HELPERS
+     * LOCAL STORAGE HELPERS
      */
     getLocal(key) {
         const data = localStorage.getItem(`traveloop_${key}`);
@@ -56,8 +50,8 @@ const TravelAPI = {
         const data = this.getLocal(key);
         data.push(item);
         localStorage.setItem(`traveloop_${key}`, JSON.stringify(data));
+        return item;
     }
 };
 
 window.TravelAPI = TravelAPI;
-window.supabaseClient = supabase;
