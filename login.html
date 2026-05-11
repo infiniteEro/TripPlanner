@@ -1,93 +1,360 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="light" lang="en">
+
 <head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Login - Traveloop</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "background": "#f7f9fb",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#191c1e",
+                        "error": "#ba1a1a",
+                        "outline": "#6e7881",
+                        "on-background": "#191c1e",
+                        "on-primary": "#ffffff",
+                        "on-primary-container": "#003751",
+                        "primary": "#006591",
+                        "inverse-surface": "#2d3133",
+                        "on-tertiary": "#ffffff",
+                        "surface-variant": "#e0e3e5",
+                        "surface": "#f7f9fb",
+                        "surface-container": "#eceef0",
+                        "secondary-container": "#6cf8bb",
+                        "secondary": "#006c49",
+                        "tertiary": "#8a5100",
+                        "surface-container-low": "#f2f4f6",
+                        "on-surface-variant": "#3e4850",
+                        "primary-container": "#0ea5e9",
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Plus Jakarta Sans"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "title-md": ["Plus Jakarta Sans"]
+                    },
+                },
+            }
+        }
+    </script>
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.3); }
-        .bg-animate { background: linear-gradient(-45deg, #0ea5e9, #006591, #006c49, #6cf8bb); background-size: 400% 400%; animation: gradient 15s ease infinite; }
-        @keyframes gradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-    </style>
-</head>
-<body class="bg-animate min-h-screen flex items-center justify-center p-6">
-
-    <div class="glass max-w-md w-full rounded-[2.5rem] p-10 shadow-2xl">
-        <div class="text-center mb-10">
-            <h1 class="text-4xl font-extrabold text-[#006591] mb-2">Traveloop</h1>
-            <p class="text-slate-500 font-medium" id="form-subtitle">Welcome back! Please login.</p>
-        </div>
-
-        <form id="auth-form" class="space-y-5">
-            <div id="name-field" class="hidden">
-                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Full Name</label>
-                <input type="text" id="name" class="w-full px-6 py-4 rounded-2xl bg-white/50 border border-slate-200 focus:ring-2 focus:ring-[#0ea5e9] outline-none transition-all" placeholder="Alex Rivera"/>
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Email Address</label>
-                <input type="email" id="email" required class="w-full px-6 py-4 rounded-2xl bg-white/50 border border-slate-200 focus:ring-2 focus:ring-[#0ea5e9] outline-none transition-all" placeholder="alex@example.com"/>
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Password</label>
-                <input type="password" id="password" required class="w-full px-6 py-4 rounded-2xl bg-white/50 border border-slate-200 focus:ring-2 focus:ring-[#0ea5e9] outline-none transition-all" placeholder="••••••••"/>
-            </div>
-
-            <button type="submit" id="submit-btn" class="w-full py-4 bg-[#006591] text-white font-bold rounded-2xl shadow-xl shadow-blue-500/20 hover:opacity-90 active:scale-[0.98] transition-all">
-                <span id="btn-text">Sign In</span>
-            </button>
-        </form>
-
-        <div class="mt-8 text-center text-sm font-medium text-slate-500">
-            <span id="toggle-text">Don't have an account?</span>
-            <button onclick="toggleAuth()" class="text-[#0ea5e9] font-bold hover:underline ml-1" id="toggle-btn">Sign Up</button>
-        </div>
-    </div>
-
-    <script>
-        let isLogin = true;
-
-        function toggleAuth() {
-            isLogin = !isLogin;
-            document.getElementById('name-field').classList.toggle('hidden');
-            document.getElementById('form-subtitle').textContent = isLogin ? 'Welcome back! Please login.' : 'Join the world of explorers.';
-            document.getElementById('btn-text').textContent = isLogin ? 'Sign In' : 'Create Account';
-            document.getElementById('toggle-text').textContent = isLogin ? "Don't have an account?" : "Already have an account?";
-            document.getElementById('toggle-btn').textContent = isLogin ? "Sign Up" : "Log In";
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1.5px solid rgba(255, 255, 255, 0.3);
         }
 
-        document.getElementById('auth-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            z-index: 9999;
+            transition: opacity 0.3s;
+        }
 
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const btn = document.getElementById('btn-text');
+        .toast.success {
+            background: #006c49;
+            color: white;
+        }
 
-            btn.textContent = 'Please wait...';
-            document.getElementById('submit-btn').disabled = true;
+        .toast.error {
+            background: #ba1a1a;
+            color: white;
+        }
 
-            // Mock local authentication
-            setTimeout(() => {
-                const user = {
-                    email: email,
-                    name: email.split('@')[0],
-                    id: 'local_' + Date.now()
-                };
+        .input-field {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid #bec8d2;
+            border-radius: 12px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+            background: #f7f9fb;
+        }
 
-                localStorage.setItem('traveloop_user', JSON.stringify(user));
-                localStorage.setItem('traveloop_token', 'local_session_' + Date.now());
-                
-                if (!isLogin) {
-                    alert('✅ Account created locally! Logging you in...');
-                }
-                
-                window.location.href = 'dashboard.html';
-            }, 800);
+        .input-field:focus {
+            border-color: #006591;
+            background: white;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background font-body-md text-on-background min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
+    <div class="absolute inset-0 z-0">
+        <img class="w-full h-full object-cover"
+            src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=900&fit=crop" />
+        <div class="absolute inset-0 bg-white/10 backdrop-blur-[2px]"></div>
+    </div>
+
+    <main
+        class="relative z-10 w-full max-w-[1100px] grid grid-cols-1 md:grid-cols-2 glass-panel rounded-xl shadow-2xl overflow-hidden min-h-[640px]">
+        <!-- Left Panel -->
+        <section class="hidden md:flex flex-col justify-between p-12 bg-cover bg-center relative overflow-hidden">
+            <div class="absolute inset-0 bg-primary/20 mix-blend-overlay"></div>
+            <div class="relative z-10">
+                <div class="flex items-center gap-3 mb-8">
+                    <span class="material-symbols-outlined text-primary text-4xl"
+                        style="font-variation-settings: 'FILL' 1;">travel_explore</span>
+                    <h1 class="font-display-lg text-xl font-bold text-primary tracking-tight">TravelLoop</h1>
+                </div>
+                <h2 class="text-3xl font-bold text-on-primary-container leading-tight">
+                    Start your next <br />unforgettable <br />journey today.
+                </h2>
+                <p class="mt-6 text-on-surface-variant text-lg max-w-xs">
+                    Join thousands of travelers planning their perfect escapes with AI-driven itineraries.
+                </p>
+            </div>
+            <div class="relative z-10 grid grid-cols-3 gap-4 mt-8">
+                <div class="text-center">
+                    <div
+                        class="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto mb-2">
+                        <span class="material-symbols-outlined">map</span>
+                    </div>
+                    <p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Itinerary</p>
+                </div>
+                <div class="text-center">
+                    <div
+                        class="w-12 h-12 rounded-2xl bg-secondary/10 flex items-center justify-center text-secondary mx-auto mb-2">
+                        <span class="material-symbols-outlined">payments</span>
+                    </div>
+                    <p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Budget</p>
+                </div>
+                <div class="text-center">
+                    <div
+                        class="w-12 h-12 rounded-2xl bg-tertiary/10 flex items-center justify-center text-tertiary mx-auto mb-2">
+                        <span class="material-symbols-outlined">group</span>
+                    </div>
+                    <p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Social</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Panel -->
+        <section class="bg-white flex flex-col p-8 md:p-12">
+            <div class="flex justify-between items-center mb-10">
+                <div class="md:hidden flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary"
+                        style="font-variation-settings: 'FILL' 1;">travel_explore</span>
+                    <span class="font-bold text-lg text-primary">TravelLoop</span>
+                </div>
+                <div class="flex bg-surface-container-low p-1 rounded-lg">
+                    <button id="login-toggle" onclick="toggleAuthMode('login')"
+                        class="px-6 py-2 rounded-md text-sm font-semibold text-primary bg-white shadow-sm transition-all">Login</button>
+                    <button id="signup-toggle" onclick="toggleAuthMode('signup')"
+                        class="px-6 py-2 rounded-md text-sm font-semibold text-on-surface-variant hover:text-primary transition-all">Signup</button>
+                </div>
+            </div>
+
+            <div class="flex-grow flex flex-col justify-center">
+                <header class="mb-8">
+                    <h1 id="auth-title" class="text-4xl font-bold text-on-surface mb-2 leading-tight">Welcome Back</h1>
+                    <p id="auth-subtitle" class="text-on-surface-variant text-base">Please enter your details to access
+                        your trips.</p>
+                </header>
+
+                <div class="space-y-4">
+                    <!-- Name field (signup only) -->
+                    <div id="name-field" class="hidden">
+                        <label class="block text-sm font-semibold text-on-surface mb-1">Full Name</label>
+                        <input id="name-input" type="text" placeholder="Your name" class="input-field" />
+                    </div>
+
+                    <!-- Email -->
+                    <div>
+                        <label class="block text-sm font-semibold text-on-surface mb-1">Email</label>
+                        <input id="email-input" type="email" placeholder="you@example.com" class="input-field" />
+                    </div>
+
+                    <!-- Password -->
+                    <div>
+                        <label class="block text-sm font-semibold text-on-surface mb-1">Password</label>
+                        <input id="password-input" type="password" placeholder="••••••••" class="input-field" />
+                    </div>
+
+                    <!-- Forgot password (login only) -->
+                    <div id="forgot-link" class="text-right">
+                        <a href="#" onclick="handleForgotPassword()"
+                            class="text-sm text-primary font-semibold hover:underline">Forgot password?</a>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button id="auth-submit-btn" onclick="handleAuthSubmit()"
+                        class="w-full bg-primary text-white py-4 rounded-2xl font-bold text-base hover:opacity-90 active:scale-[0.98] transition-all shadow-lg shadow-primary/30 flex items-center justify-center gap-2 mt-2">
+                        <span id="btn-text">Sign In</span>
+                        <span id="btn-spinner"
+                            class="hidden material-symbols-outlined animate-spin text-lg">progress_activity</span>
+                        <span id="btn-arrow" class="material-symbols-outlined text-lg">arrow_forward</span>
+                    </button>
+
+                    <p class="text-center text-on-surface-variant text-xs mt-2">
+                        Your data is securely stored in the cloud.
+                    </p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // ── Supabase Init ──
+        const SUPABASE_URL = 'https://lpuiwcvobxsfrzokmqbc.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxwdWl3Y3ZvYnhzZnJ6b2ttcWJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0NjcxNTUsImV4cCI6MjA5NDA0MzE1NX0.jfMj2IgEEEk_A0AB4IEUgsExHkTovHRycnFZIKW5774';
+        const { createClient } = supabase;
+        const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // ── Check if already logged in ──
+        sb.auth.getSession().then(({ data: { session } }) => {
+            if (session) window.location.href = 'dashboard.html';
         });
+
+        let authMode = 'login';
+
+        function toggleAuthMode(mode) {
+            authMode = mode;
+            const loginToggle = document.getElementById('login-toggle');
+            const signupToggle = document.getElementById('signup-toggle');
+            const authTitle = document.getElementById('auth-title');
+            const authSubtitle = document.getElementById('auth-subtitle');
+            const btnText = document.getElementById('btn-text');
+            const nameField = document.getElementById('name-field');
+            const forgotLink = document.getElementById('forgot-link');
+
+            if (mode === 'login') {
+                loginToggle.className = 'px-6 py-2 rounded-md text-sm font-semibold text-primary bg-white shadow-sm transition-all';
+                signupToggle.className = 'px-6 py-2 rounded-md text-sm font-semibold text-on-surface-variant hover:text-primary transition-all';
+                authTitle.textContent = 'Welcome Back';
+                authSubtitle.textContent = 'Please enter your details to access your trips.';
+                btnText.textContent = 'Sign In';
+                nameField.classList.add('hidden');
+                forgotLink.classList.remove('hidden');
+            } else {
+                signupToggle.className = 'px-6 py-2 rounded-md text-sm font-semibold text-primary bg-white shadow-sm transition-all';
+                loginToggle.className = 'px-6 py-2 rounded-md text-sm font-semibold text-on-surface-variant hover:text-primary transition-all';
+                authTitle.textContent = 'Create Account';
+                authSubtitle.textContent = 'Join TravelLoop and start planning your perfect escape.';
+                btnText.textContent = 'Sign Up';
+                nameField.classList.remove('hidden');
+                forgotLink.classList.add('hidden');
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        function setLoading(loading) {
+            const btn = document.getElementById('auth-submit-btn');
+            const spinner = document.getElementById('btn-spinner');
+            const arrow = document.getElementById('btn-arrow');
+            btn.disabled = loading;
+            spinner.classList.toggle('hidden', !loading);
+            arrow.classList.toggle('hidden', loading);
+            btn.classList.toggle('opacity-70', loading);
+        }
+
+        async function handleAuthSubmit() {
+            const email = document.getElementById('email-input').value.trim();
+            const password = document.getElementById('password-input').value;
+
+            if (!email || !password) {
+                showToast('Please enter email and password.', 'error');
+                return;
+            }
+
+            setLoading(true);
+
+            if (authMode === 'signup') {
+                const fullName = document.getElementById('name-input').value.trim();
+                const { data, error } = await sb.auth.signUp({
+                    email,
+                    password,
+                    options: { data: { full_name: fullName } }
+                });
+
+                if (error) {
+                    showToast(error.message, 'error');
+                    setLoading(false);
+                    return;
+                }
+
+                // Create profile row
+                if (data.user) {
+                    await sb.from('profiles').insert({
+                        id: data.user.id,
+                        full_name: fullName
+                    });
+                }
+
+                showToast('Account created! Check your email to confirm.', 'success');
+                setLoading(false);
+
+            } else {
+                const { data, error } = await sb.auth.signInWithPassword({ email, password });
+
+                if (error) {
+                    showToast(error.message, 'error');
+                    setLoading(false);
+                    return;
+                }
+
+                // Save user info locally for quick access
+                localStorage.setItem('traveloop_user', JSON.stringify({
+                    id: data.user.id,
+                    email: data.user.email,
+                    name: data.user.user_metadata?.full_name || email.split('@')[0]
+                }));
+
+                showToast('Welcome back! Redirecting...', 'success');
+                setTimeout(() => window.location.href = 'dashboard.html', 1000);
+            }
+        }
+
+        async function handleForgotPassword() {
+            const email = document.getElementById('email-input').value.trim();
+            if (!email) {
+                showToast('Enter your email first.', 'error');
+                return;
+            }
+            const { error } = await sb.auth.resetPasswordForEmail(email, {
+                redirectTo: window.location.origin + '/login.html'
+            });
+            if (error) {
+                showToast(error.message, 'error');
+            } else {
+                showToast('Password reset email sent!', 'success');
+            }
+        }
     </script>
 </body>
+
 </html>
