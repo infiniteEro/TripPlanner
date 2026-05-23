@@ -1,106 +1,114 @@
-# 🌍 Traveloop: Premium Local-First Travel Journal
+# 🌍 Traveloop
 
-Traveloop is a state-of-the-art, high-fidelity travel planning and journaling application. Designed with a **premium glassmorphism aesthetic**, it provides a seamless, local-first experience for planning multi-city adventures, tracking budgets, and collaborating with your travel squad.
-
-![Traveloop Dashboard Mockup](https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=400&fit=crop)
+Traveloop is a polished travel planning and journaling experience built around a modern, glassmorphism-inspired UI. It combines local-first data handling, trip planning tools, budget tracking, and social features into one interactive website.
 
 ---
 
-## ✨ Features
+## ✨ Core Website Features
 
-### 🗺️ Intelligent Itinerary Builder
-- **Dynamic Timeline:** Plan your days with precision using a visual drag-and-drop-style timeline.
-- **Search Explorer:** Discover destinations and add them instantly to your route.
-- **AI-Driven Suggestions:** Get smart recommendations for hotels and activities based on your preferences.
+### 🧭 Landing & Access
+- **Landing page (`index.html`)** with premium hero visuals, feature highlights, and modern typography.
+- **Login page (`login.html`)** for user access and session flow.
+- **Profile page (`profile.html`)** for managing personal traveler details.
+- **Shared trips page (`shared.html`)** for collaborative planning and shared itinerary views.
 
-### 💰 Expense & Budget Tracker
-- **Smart Budgeting:** Set total budgets and track expenses across different categories (Food, Stay, Transport, etc.).
-- **Visual Analytics:** Real-time progress bars and cost breakdowns to keep your spending in check.
+### 📊 Dashboard & Trip Management
+- **Dashboard (`dashboard.html`)** serves as the travel command center with summary cards, active trip previews, and quick actions.
+- **Itinerary planner (`itinerary.html`)** for creating multi-city schedules, adding travel stops, and organizing trip days.
+- **Route planner (`route-planner.html`)** for visual route mapping, time estimates, and transport planning.
 
-### 🤝 Collaborative "Squad" Sync
-- **Shared Trips:** Synchronize your journeys with friends and view group-specific itineraries.
-- **Friend Network:** Build your community of explorers and invite them to joint adventures.
+### 💰 Budget & Expenses
+- **Budget tracker (`budget.html`)** to set budgets, log expenses, and view spending breakdowns.
+- **Expense categories** for food, lodging, transport, activities, and more.
+- **Visual progress indicators** to keep spending under control.
 
-### 🧳 All-in-One Travel Toolkit
-- **Packing Checklists:** Never forget the essentials with organized, category-based packing lists.
-- **Travel Journal & Notes:** Capture memories, thoughts, and important details in a beautiful glassmorphic editor.
-- **Route Planner:** Advanced pathfinding between major destinations with duration and cost estimates.
-- **AI Chatbot:** Your personal travel assistant, ready to answer questions and help with planning.
+### 🧳 Travel Tools
+- **Packing list manager (`packing.html`)** with category-based checklists and item tracking.
+- **Notes & journal (`notes.html`)** for travel memories, trip notes, and planning details.
+- **Friends & collaboration (`friends.html`)** for managing travel companions and shared planning.
+
+### 🤖 Assistant & Extras
+- **Chatbot page (`chatbot.html`)** for an AI-style travel assistant experience.
+- **Local-first behavior** using browser storage for fast offline-friendly interactions.
+- **Supabase-ready integrations** for optional backend syncing and authenticated storage.
 
 ---
 
-## 🎨 Design Philosophy
-
-Traveloop isn't just a tool; it's an experience.
-- **Glassmorphism:** Elegant frosted-glass panels and subtle backdrops.
-- **Modern Typography:** Optimized for readability using *Plus Jakarta Sans* and *Inter*.
-- **Responsive & Alive:** Fluid transitions, hover effects, and a mobile-first approach.
-- **Dark Mode Ready:** Built-in support for a sleek dark aesthetic.
+## 🎨 Design Highlights
+- **Glassmorphism UI** with frosted glass cards, blur effects, and layered depth.
+- **Tailwind-driven styling** for consistent responsive layouts.
+- **Clean typography** using *Plus Jakarta Sans* and *Inter*.
+- **Responsive pages** designed for desktop and mobile use.
 
 ---
 
 ## 🛠️ Tech Stack
-
-- **Frontend:** HTML5, Modern JavaScript (ES6+), Tailwind CSS (Premium Utility Framework).
-- **Backend:** Node.js, Express.js (serving as a local-first API hub).
-- **Icons:** Material Symbols & Lucide Icons.
-- **Storage:** Local-first architecture (Web Storage API) with optional Supabase hooks.
+- **Frontend:** HTML5, CSS, JavaScript, Tailwind CSS.
+- **Backend:** Node.js, Express.js.
+- **Auth / Storage:** Supabase client support in `supabase.js` and `utils/supabase/`.
+- **Data:** Local JSON files, browser storage, and optional Supabase hooks.
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Run Locally
 
 ### Prerequisites
-- Node.js (v16 or higher)
-- npm or yarn
+- Node.js (v16+)
+- npm
 
-### Installation
-
-1. **Clone the repository:**
+### Setup
+1. Clone the repo:
    ```bash
    git clone https://github.com/boddepallihemavarun/TravelLoop.git
-   cd TravelLoop
+   cd "Travel Loop"
    ```
-
-2. **Install dependencies:**
+2. Install dependencies:
    ```bash
    npm install
    ```
-
-3. **Start the development server:**
+3. Start the server:
    ```bash
    npm run dev
    ```
-
-4. **Open in your browser:**
-   Navigate to `http://localhost:3000` to start your journey.
+4. Open the website in your browser.
 
 ---
 
 ## 📁 Project Structure
 
 ```text
-├── app/                  # Modern Next.js application logic
-├── server.js             # Express backend server
-├── index.html            # Premium Landing Page
-├── dashboard.html        # User Command Center
-├── itinerary.html        # Detailed Journey Planner
-├── budget.html           # Expense Management
-├── friends.html          # Social & Collaboration Hub
-├── notes.html            # Travel Journal & Memories
-├── packing.html          # Packing Checklists
-├── route-planner.html    # Advanced Pathfinding
-└── chatbot.html          # AI Travel Assistant
+.
+├── app/                         # Next.js page logic and components
+├── api.js                       # App frontend helpers and data logic
+├── package.json                 # Node.js backend dependencies and scripts
+├── server.js                    # Express server entrypoint
+├── index.html                   # Landing page
+├── dashboard.html               # Main travel dashboard
+├── itinerary.html               # Itinerary planner
+├── budget.html                  # Budget tracker
+├── friends.html                 # Friends & collaboration
+├── notes.html                   # Travel journal
+├── packing.html                 # Packing checklist
+├── route-planner.html           # Route planning page
+├── chatbot.html                 # Travel chatbot assistant
+├── login.html                   # Login page
+├── profile.html                 # User profile page
+├── shared.html                  # Shared trip view
+├── supabase.js                  # Supabase client setup
+└── utils/                       # backend and middleware helpers
+    └── supabase/
+        ├── client.ts
+        ├── middleware.ts
+        └── server.ts
 ```
 
 ---
 
-## 🛡️ License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
+## 📌 Notes
+- The project is built around a local-first experience with optional Supabase backend support.
+- Many pages use Tailwind CSS and modern JavaScript for interactive UI behavior.
 
 ---
 
-<p align="center">
-  <i>"Start your next unforgettable journey today with Traveloop."</i>
-</p>
+## 🛡️ License
+This repository is provided under the MIT License.
