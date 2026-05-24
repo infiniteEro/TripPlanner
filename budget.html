@@ -4,14 +4,11 @@
 <head>
   <meta charset="utf-8" />
   <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-  <title>Budget Tracker - Traveloop</title>
+  <title>Budget Tracker - Trip Planner</title>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
-    rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
   <script>
     tailwind.config = {
       darkMode: "class",
@@ -38,160 +35,72 @@
     }
   </script>
   <style>
-    .glass-panel {
-      background: rgba(255, 255, 255, 0.7);
-      backdrop-filter: blur(16px);
-      border: 1.5px solid rgba(255, 255, 255, 0.3);
-    }
-
-    .modal-enter {
-      animation: modalIn 0.25s cubic-bezier(.4, 0, .2, 1) both;
-    }
-
-    @keyframes modalIn {
-      from {
-        opacity: 0;
-        transform: scale(0.95) translateY(10px)
-      }
-
-      to {
-        opacity: 1;
-        transform: scale(1) translateY(0)
-      }
-    }
-
-    .bar-fill {
-      transition: height 0.8s cubic-bezier(.4, 0, .2, 1);
-    }
-
-    .category-bar {
-      transition: width 1s cubic-bezier(.4, 0, .2, 1);
-    }
-
-    .expense-row {
-      transition: all 0.2s ease;
-    }
-
-    .expense-row:hover {
-      transform: translateX(4px);
-    }
-
-    .toast {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 12px 24px;
-      border-radius: 12px;
-      font-weight: 600;
-      font-size: 14px;
-      z-index: 9999;
-      transition: all 0.3s;
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .toast.show {
-      opacity: 1;
-    }
-
-    .toast.success {
-      background: #006c49;
-      color: white;
-    }
-
-    .toast.error {
-      background: #ba1a1a;
-      color: white;
-    }
-
-    ::-webkit-scrollbar {
-      width: 4px;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: #bec8d2;
-      border-radius: 4px;
-    }
+    .glass-panel { background: rgba(255,255,255,0.7); backdrop-filter: blur(16px); border: 1.5px solid rgba(255,255,255,0.3); }
+    .modal-enter { animation: modalIn 0.25s cubic-bezier(.4,0,.2,1) both; }
+    @keyframes modalIn { from { opacity:0; transform:scale(0.95) translateY(10px) } to { opacity:1; transform:scale(1) translateY(0) } }
+    .bar-fill { transition: height 0.8s cubic-bezier(.4,0,.2,1); }
+    .category-bar { transition: width 1s cubic-bezier(.4,0,.2,1); }
+    .expense-row { transition: all 0.2s ease; }
+    .expense-row:hover { transform: translateX(4px); }
+    .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); padding:12px 24px; border-radius:12px; font-weight:600; font-size:14px; z-index:9999; transition:all 0.3s; opacity:0; pointer-events:none; }
+    .toast.show { opacity:1; }
+    .toast.success { background:#006c49; color:white; }
+    .toast.error { background:#ba1a1a; color:white; }
+    .toast.warning { background:#8a5100; color:white; }
+    ::-webkit-scrollbar { width:4px; }
+    ::-webkit-scrollbar-thumb { background:#bec8d2; border-radius:4px; }
   </style>
 </head>
 
 <body class="bg-background font-body-md text-on-surface min-h-screen">
 
   <!-- SIDEBAR -->
-  <aside
-    class="fixed left-0 top-0 h-full w-[280px] bg-white/70 backdrop-blur-xl border-r border-white/30 shadow-sm flex flex-col py-8 z-50">
+  <aside class="fixed left-0 top-0 h-full w-[280px] bg-white/70 backdrop-blur-xl border-r border-white/30 shadow-sm flex flex-col py-8 z-50">
     <div class="px-8 mb-10">
       <div class="flex items-center gap-3">
-        <span class="material-symbols-outlined text-primary text-3xl"
-          style="font-variation-settings:'FILL' 1">travel_explore</span>
-        <h1 class="text-2xl font-bold text-primary" style="font-family:'Plus Jakarta Sans'">Traveloop</h1>
+        <span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings:'FILL' 1">travel_explore</span>
+        <h1 class="text-2xl font-bold text-primary" style="font-family:'Plus Jakarta Sans'">Trip Planner</h1>
       </div>
       <p class="text-xs text-on-surface-variant mt-1 opacity-70">Personalized Planning</p>
     </div>
     <nav class="flex-1 px-3 space-y-1">
-      <a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-primary-container/10 hover:text-primary transition-all rounded-xl"
-        href="dashboard.html"><span class="material-symbols-outlined">dashboard</span><span
-          class="text-sm font-medium">Dashboard</span></a>
-      <a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-primary-container/10 hover:text-primary transition-all rounded-xl"
-        href="itinerary.html"><span class="material-symbols-outlined">event_note</span><span
-          class="text-sm font-medium">Itinerary</span></a>
-      <a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-primary-container/10 hover:text-primary transition-all rounded-xl"
-        href="friends.html"><span class="material-symbols-outlined">group</span><span
-          class="text-sm font-medium">Friends</span></a>
-      <a class="relative flex items-center gap-3 bg-primary-container/20 text-primary px-4 py-3 rounded-xl border-l-4 border-primary"
-        href="#">
-        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">payments</span><span
-          class="text-sm font-semibold">Budget</span>
+      <a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-primary-container/10 hover:text-primary transition-all rounded-xl" href="dashboard.html"><span class="material-symbols-outlined">dashboard</span><span class="text-sm font-medium">Dashboard</span></a>
+      <a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-primary-container/10 hover:text-primary transition-all rounded-xl" href="itinerary.html"><span class="material-symbols-outlined">event_note</span><span class="text-sm font-medium">Itinerary</span></a>
+      <a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-primary-container/10 hover:text-primary transition-all rounded-xl" href="friends.html"><span class="material-symbols-outlined">group</span><span class="text-sm font-medium">Friends</span></a>
+      <a class="relative flex items-center gap-3 bg-primary-container/20 text-primary px-4 py-3 rounded-xl border-l-4 border-primary" href="#">
+        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">payments</span><span class="text-sm font-semibold">Budget</span>
       </a>
-      <a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-primary-container/10 hover:text-primary transition-all rounded-xl"
-        href="packing.html"><span class="material-symbols-outlined">inventory_2</span><span
-          class="text-sm font-medium">Packing List</span></a>
-      <a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-primary-container/10 hover:text-primary transition-all rounded-xl"
-        href="notes.html"><span class="material-symbols-outlined">description</span><span
-          class="text-sm font-medium">Notes</span></a>
-      <a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-primary-container/10 hover:text-primary transition-all rounded-xl"
-        href="route-planner.html"><span class="material-symbols-outlined">route</span><span
-          class="text-sm font-medium">Route Planner</span></a>
+      <a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-primary-container/10 hover:text-primary transition-all rounded-xl" href="packing.html"><span class="material-symbols-outlined">inventory_2</span><span class="text-sm font-medium">Packing List</span></a>
+      <a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-primary-container/10 hover:text-primary transition-all rounded-xl" href="notes.html"><span class="material-symbols-outlined">description</span><span class="text-sm font-medium">Notes</span></a>
+      <a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-primary-container/10 hover:text-primary transition-all rounded-xl" href="route-planner.html"><span class="material-symbols-outlined">route</span><span class="text-sm font-medium">Route Planner</span></a>
     </nav>
     <div class="px-6 mt-auto">
-      <button onclick="window.location.href='route-planner.html'"
-        class="w-full py-3 bg-primary text-white rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-lg shadow-primary/20">
+      <button onclick="window.location.href='route-planner.html'" class="w-full py-3 bg-primary text-white rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-lg shadow-primary/20">
         <span class="material-symbols-outlined text-sm">add_circle</span> Plan New Trip
       </button>
       <div class="mt-5 flex items-center gap-3 px-2">
-        <div id="sb-avatar"
-          class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm ring-2 ring-primary-container">
-          ?</div>
+        <div id="sb-avatar" class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm ring-2 ring-primary-container">?</div>
         <div>
           <p id="sb-name" class="text-sm font-bold text-on-surface">Loading...</p>
           <p class="text-xs text-on-surface-variant">Pro Explorer 🌏</p>
         </div>
-        <button onclick="handleLogout()"
-          class="ml-auto w-8 h-8 flex items-center justify-center text-on-surface-variant hover:bg-primary/10 rounded-full"
-          title="Logout"><span class="material-symbols-outlined text-sm">logout</span></button>
+        <button onclick="handleLogout()" class="ml-auto w-8 h-8 flex items-center justify-center text-on-surface-variant hover:bg-primary/10 rounded-full" title="Logout"><span class="material-symbols-outlined text-sm">logout</span></button>
       </div>
     </div>
   </aside>
 
   <!-- TOPBAR -->
-  <header
-    class="fixed top-0 right-0 w-[calc(100%-280px)] h-16 px-10 bg-white/10 backdrop-blur-md flex justify-between items-center z-40 border-b border-white/20">
+  <header class="fixed top-0 right-0 w-[calc(100%-280px)] h-16 px-10 bg-white/10 backdrop-blur-md flex justify-between items-center z-40 border-b border-white/20">
     <div class="flex items-center gap-3">
       <h2 class="font-semibold text-primary text-lg">Trip Budget Tracker</h2>
-      <span
-        class="px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container text-xs font-bold">Live</span>
+      <span class="px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container text-xs font-bold">Live</span>
     </div>
     <div class="flex items-center gap-4">
       <div class="relative hidden lg:block">
-        <span
-          class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
-        <input id="search-input" oninput="filterExpenses(this.value)"
-          class="pl-9 pr-4 py-2 bg-white/50 border border-white/30 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 w-56"
-          placeholder="Search expenses..." type="text" />
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+        <input id="search-input" oninput="filterExpenses(this.value)" class="pl-9 pr-4 py-2 bg-white/50 border border-white/30 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 w-56" placeholder="Search expenses..." type="text" />
       </div>
-      <button onclick="openAddExpenseModal()"
-        class="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-xl text-sm font-semibold hover:opacity-90 transition-all shadow-md shadow-primary/20">
+      <button onclick="openAddExpenseModal()" class="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-xl text-sm font-semibold hover:opacity-90 transition-all shadow-md shadow-primary/20">
         <span class="material-symbols-outlined text-sm">add</span> Add Expense
       </button>
     </div>
@@ -200,15 +109,22 @@
   <!-- MAIN -->
   <main class="ml-[280px] pt-24 pb-12 px-10">
 
-    <!-- Budget Setup Banner (shown when no budget set) -->
-    <div id="setup-banner"
-      class="hidden mb-6 glass-panel p-5 rounded-2xl border-l-4 border-primary flex items-center justify-between">
+    <!-- Budget Setup Banner -->
+    <div id="setup-banner" class="hidden mb-6 glass-panel p-5 rounded-2xl border-l-4 border-primary flex items-center justify-between">
       <div class="flex items-center gap-3">
         <span class="material-symbols-outlined text-primary text-2xl">info</span>
         <p class="text-sm font-semibold text-on-surface">Set your total trip budget to start tracking expenses.</p>
       </div>
-      <button onclick="openBudgetSetupModal()"
-        class="bg-primary text-white px-4 py-2 rounded-xl text-sm font-semibold hover:opacity-90">Set Budget</button>
+      <button onclick="openBudgetSetupModal()" class="bg-primary text-white px-4 py-2 rounded-xl text-sm font-semibold hover:opacity-90">Set Budget</button>
+    </div>
+
+    <!-- Budget Exhausted Warning Banner -->
+    <div id="budget-warning-banner" class="hidden mb-6 glass-panel p-5 rounded-2xl border-l-4 border-error flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined text-error text-2xl">warning</span>
+        <p class="text-sm font-semibold text-error">⚠️ Budget limit reached! You have exceeded your total trip budget.</p>
+      </div>
+      <button onclick="openBudgetSetupModal()" class="bg-error text-white px-4 py-2 rounded-xl text-sm font-semibold hover:opacity-90">Increase Budget</button>
     </div>
 
     <!-- Stats Row -->
@@ -216,8 +132,7 @@
       <div class="glass-panel p-6 rounded-2xl">
         <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2">Total Budget</p>
         <p id="stat-budget" class="text-3xl font-bold text-primary">₹0</p>
-        <button onclick="openBudgetSetupModal()"
-          class="text-xs text-primary/60 hover:text-primary mt-1 font-semibold">Edit →</button>
+        <button onclick="openBudgetSetupModal()" class="text-xs text-primary/60 hover:text-primary mt-1 font-semibold">Edit →</button>
       </div>
       <div class="glass-panel p-6 rounded-2xl">
         <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2">Total Spent</p>
@@ -238,7 +153,7 @@
 
     <div class="grid grid-cols-12 gap-6">
 
-      <!-- LEFT: Chart + Category Breakdown -->
+      <!-- LEFT: Chart + Expenses -->
       <div class="col-span-8 space-y-6">
 
         <!-- Donut + Category Breakdown -->
@@ -246,10 +161,8 @@
           <div class="flex items-center justify-between mb-6">
             <h3 class="text-xl font-bold text-on-surface">Spending Overview</h3>
             <div class="flex gap-2">
-              <button onclick="setView('chart')" id="btn-chart"
-                class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-primary text-white transition-all">Chart</button>
-              <button onclick="setView('bars')" id="btn-bars"
-                class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-surface-container text-on-surface-variant transition-all">Bars</button>
+              <button onclick="setView('chart')" id="btn-chart" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-primary text-white transition-all">Chart</button>
+              <button onclick="setView('bars')" id="btn-bars" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-surface-container text-on-surface-variant transition-all">Bars</button>
             </div>
           </div>
 
@@ -258,18 +171,11 @@
             <div class="relative flex-shrink-0">
               <svg width="200" height="200" viewBox="0 0 200 200">
                 <circle cx="100" cy="100" r="80" fill="none" stroke="#eceef0" stroke-width="24" />
-                <circle id="donut-stay" cx="100" cy="100" r="80" fill="none" stroke="#0ea5e9" stroke-width="24"
-                  stroke-dasharray="502" stroke-dashoffset="502" stroke-linecap="round" transform="rotate(-90 100 100)"
-                  style="transition:stroke-dashoffset 1s ease" />
-                <circle id="donut-food" cx="100" cy="100" r="80" fill="none" stroke="#4edea3" stroke-width="24"
-                  stroke-dasharray="502" stroke-dashoffset="502" stroke-linecap="round" transform="rotate(-90 100 100)"
-                  style="transition:stroke-dashoffset 1s ease 0.2s" />
-                <circle id="donut-transport" cx="100" cy="100" r="80" fill="none" stroke="#de8712" stroke-width="24"
-                  stroke-dasharray="502" stroke-dashoffset="502" stroke-linecap="round" transform="rotate(-90 100 100)"
-                  style="transition:stroke-dashoffset 1s ease 0.4s" />
-                <circle id="donut-other" cx="100" cy="100" r="80" fill="none" stroke="#89ceff" stroke-width="24"
-                  stroke-dasharray="502" stroke-dashoffset="502" stroke-linecap="round" transform="rotate(-90 100 100)"
-                  style="transition:stroke-dashoffset 1s ease 0.6s" />
+                <circle id="donut-stay" cx="100" cy="100" r="80" fill="none" stroke="#0ea5e9" stroke-width="24" stroke-dasharray="502" stroke-dashoffset="502" stroke-linecap="round" transform="rotate(-90 100 100)" style="transition:stroke-dashoffset 1s ease" />
+                <circle id="donut-food" cx="100" cy="100" r="80" fill="none" stroke="#4edea3" stroke-width="24" stroke-dasharray="502" stroke-dashoffset="502" stroke-linecap="round" transform="rotate(-90 100 100)" style="transition:stroke-dashoffset 1s ease 0.2s" />
+                <circle id="donut-transport" cx="100" cy="100" r="80" fill="none" stroke="#de8712" stroke-width="24" stroke-dasharray="502" stroke-dashoffset="502" stroke-linecap="round" transform="rotate(-90 100 100)" style="transition:stroke-dashoffset 1s ease 0.4s" />
+                <circle id="donut-purchase" cx="100" cy="100" r="80" fill="none" stroke="#89ceff" stroke-width="24" stroke-dasharray="502" stroke-dashoffset="502" stroke-linecap="round" transform="rotate(-90 100 100)" style="transition:stroke-dashoffset 1s ease 0.6s" />
+                <circle id="donut-other" cx="100" cy="100" r="80" fill="none" stroke="#bec8d2" stroke-width="24" stroke-dasharray="502" stroke-dashoffset="502" stroke-linecap="round" transform="rotate(-90 100 100)" style="transition:stroke-dashoffset 1s ease 0.8s" />
               </svg>
               <div class="absolute inset-0 flex flex-col items-center justify-center">
                 <p id="donut-pct" class="text-2xl font-bold text-primary">0%</p>
@@ -278,41 +184,31 @@
             </div>
             <div class="flex-1 space-y-4" id="category-legend">
               <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2"><span
-                    class="w-3 h-3 rounded-full bg-primary-container"></span><span
-                    class="text-sm font-medium">Stay</span></div><span id="cat-stay" class="font-bold text-sm">₹0</span>
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-primary-container"></span><span class="text-sm font-medium">Stay</span></div>
+                <span id="cat-stay" class="font-bold text-sm">₹0</span>
               </div>
               <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2"><span
-                    class="w-3 h-3 rounded-full bg-secondary-fixed-dim"></span><span
-                    class="text-sm font-medium">Food</span></div><span id="cat-food" class="font-bold text-sm">₹0</span>
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-secondary-fixed-dim"></span><span class="text-sm font-medium">Food</span></div>
+                <span id="cat-food" class="font-bold text-sm">₹0</span>
               </div>
               <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2"><span
-                    class="w-3 h-3 rounded-full bg-tertiary-container"></span><span
-                    class="text-sm font-medium">Transport</span></div><span id="cat-transport"
-                  class="font-bold text-sm">₹0</span>
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-tertiary-container"></span><span class="text-sm font-medium">Transport</span></div>
+                <span id="cat-transport" class="font-bold text-sm">₹0</span>
               </div>
               <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2"><span
-                    class="w-3 h-3 rounded-full bg-primary-fixed-dim"></span><span
-                    class="text-sm font-medium">Purchase</span></div><span id="cat-purchase"
-                  class="font-bold text-sm">₹0</span>
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-primary-fixed-dim"></span><span class="text-sm font-medium">Purchase</span></div>
+                <span id="cat-purchase" class="font-bold text-sm">₹0</span>
               </div>
               <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2"><span
-                    class="w-3 h-3 rounded-full bg-surface-container-high"></span><span
-                    class="text-sm font-medium">Other</span></div><span id="cat-other"
-                  class="font-bold text-sm">₹0</span>
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-surface-container-high"></span><span class="text-sm font-medium">Other</span></div>
+                <span id="cat-other" class="font-bold text-sm">₹0</span>
               </div>
             </div>
           </div>
 
           <!-- Bar Chart View -->
           <div id="view-bars" class="hidden">
-            <div class="space-y-4" id="bar-chart-content">
-              <!-- filled by JS -->
-            </div>
+            <div class="space-y-4" id="bar-chart-content"></div>
           </div>
         </div>
 
@@ -321,8 +217,7 @@
           <div class="flex items-center justify-between mb-6">
             <h3 class="text-xl font-bold text-on-surface">All Expenses</h3>
             <div class="flex gap-2">
-              <select id="filter-cat" onchange="renderExpenses()"
-                class="text-xs px-3 py-1.5 border border-outline-variant rounded-lg bg-surface-container-low outline-none">
+              <select id="filter-cat" onchange="renderExpenses()" class="text-xs px-3 py-1.5 border border-outline-variant rounded-lg bg-surface-container-low outline-none">
                 <option value="">All Categories</option>
                 <option>Stay</option>
                 <option>Food</option>
@@ -330,8 +225,7 @@
                 <option>Purchase</option>
                 <option>Other</option>
               </select>
-              <button onclick="exportCSV()"
-                class="flex items-center gap-1 text-xs px-3 py-1.5 border border-outline-variant rounded-lg text-on-surface-variant hover:bg-surface-container transition-all">
+              <button onclick="exportCSV()" class="flex items-center gap-1 text-xs px-3 py-1.5 border border-outline-variant rounded-lg text-on-surface-variant hover:bg-surface-container transition-all">
                 <span class="material-symbols-outlined text-sm">download</span> Export CSV
               </button>
             </div>
@@ -345,7 +239,7 @@
         </div>
       </div>
 
-      <!-- RIGHT: Quick Add + Tips -->
+      <!-- RIGHT -->
       <div class="col-span-4 space-y-5">
 
         <!-- Quick Add -->
@@ -354,20 +248,16 @@
             <span class="material-symbols-outlined text-primary">bolt</span> Quick Add
           </h4>
           <div class="space-y-3">
-            <input id="quick-name" type="text" placeholder="Expense name..."
-              class="w-full bg-surface-container-low border border-outline-variant/50 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
-            <input id="quick-amount" type="number" placeholder="Amount (₹)"
-              class="w-full bg-surface-container-low border border-outline-variant/50 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
-            <select id="quick-cat"
-              class="w-full bg-surface-container-low border border-outline-variant/50 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/30">
+            <input id="quick-name" type="text" placeholder="Expense name..." class="w-full bg-surface-container-low border border-outline-variant/50 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
+            <input id="quick-amount" type="number" placeholder="Amount (₹)" class="w-full bg-surface-container-low border border-outline-variant/50 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
+            <select id="quick-cat" class="w-full bg-surface-container-low border border-outline-variant/50 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/30">
               <option>Stay</option>
               <option>Food</option>
               <option>Transport</option>
               <option>Purchase</option>
               <option>Other</option>
             </select>
-            <button onclick="quickAdd()"
-              class="w-full bg-primary text-white py-3 rounded-xl font-semibold text-sm hover:opacity-90 active:scale-[0.98] transition-all shadow-md shadow-primary/20">
+            <button onclick="quickAdd()" class="w-full bg-primary text-white py-3 rounded-xl font-semibold text-sm hover:opacity-90 active:scale-[0.98] transition-all shadow-md shadow-primary/20">
               Add Expense
             </button>
           </div>
@@ -378,37 +268,27 @@
           <h4 class="font-bold text-on-surface mb-4">Budget Health</h4>
           <div class="space-y-3">
             <div>
-              <div class="flex justify-between text-xs mb-1"><span
-                  class="text-on-surface-variant font-medium">Overall</span><span id="hp-overall"
-                  class="font-bold text-primary">0%</span></div>
+              <div class="flex justify-between text-xs mb-1"><span class="text-on-surface-variant font-medium">Overall</span><span id="hp-overall" class="font-bold text-primary">0%</span></div>
               <div class="w-full h-2.5 bg-surface-container rounded-full overflow-hidden">
                 <div id="hb-overall" class="h-full bg-primary rounded-full category-bar" style="width:0%"></div>
               </div>
             </div>
             <div>
-              <div class="flex justify-between text-xs mb-1"><span
-                  class="text-on-surface-variant font-medium">Stay</span><span id="hp-stay"
-                  class="font-bold text-primary-container">0%</span></div>
+              <div class="flex justify-between text-xs mb-1"><span class="text-on-surface-variant font-medium">Stay</span><span id="hp-stay" class="font-bold text-primary-container">0%</span></div>
               <div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
                 <div id="hb-stay" class="h-full bg-primary-container rounded-full category-bar" style="width:0%"></div>
               </div>
             </div>
             <div>
-              <div class="flex justify-between text-xs mb-1"><span
-                  class="text-on-surface-variant font-medium">Food</span><span id="hp-food"
-                  class="font-bold text-secondary">0%</span></div>
+              <div class="flex justify-between text-xs mb-1"><span class="text-on-surface-variant font-medium">Food</span><span id="hp-food" class="font-bold text-secondary">0%</span></div>
               <div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
-                <div id="hb-food" class="h-full bg-secondary-fixed-dim rounded-full category-bar" style="width:0%">
-                </div>
+                <div id="hb-food" class="h-full bg-secondary-fixed-dim rounded-full category-bar" style="width:0%"></div>
               </div>
             </div>
             <div>
-              <div class="flex justify-between text-xs mb-1"><span
-                  class="text-on-surface-variant font-medium">Transport</span><span id="hp-transport"
-                  class="font-bold text-tertiary">0%</span></div>
+              <div class="flex justify-between text-xs mb-1"><span class="text-on-surface-variant font-medium">Transport</span><span id="hp-transport" class="font-bold text-tertiary">0%</span></div>
               <div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
-                <div id="hb-transport" class="h-full bg-tertiary-container rounded-full category-bar" style="width:0%">
-                </div>
+                <div id="hb-transport" class="h-full bg-tertiary-container rounded-full category-bar" style="width:0%"></div>
               </div>
             </div>
           </div>
@@ -440,35 +320,25 @@
   </main>
 
   <!-- ADD EXPENSE MODAL -->
-  <div id="add-modal"
-    class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
-    onclick="if(event.target===this)closeAddModal()">
+  <div id="add-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4" onclick="if(event.target===this)closeAddModal()">
     <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl modal-enter">
       <div class="flex justify-between items-center mb-6">
         <h3 class="text-xl font-bold text-primary">Add Expense 💰</h3>
-        <button onclick="closeAddModal()"
-          class="w-9 h-9 rounded-full border border-outline-variant flex items-center justify-center text-on-surface-variant hover:bg-surface-container transition-all"><span
-            class="material-symbols-outlined text-sm">close</span></button>
+        <button onclick="closeAddModal()" class="w-9 h-9 rounded-full border border-outline-variant flex items-center justify-center text-on-surface-variant hover:bg-surface-container transition-all"><span class="material-symbols-outlined text-sm">close</span></button>
       </div>
       <div class="space-y-4">
         <div>
-          <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Expense Name
-            *</label>
-          <input id="modal-name" type="text" placeholder="e.g. Hotel Stay, Dinner..."
-            class="w-full bg-surface-container-low border border-outline-variant/50 rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
+          <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Expense Name *</label>
+          <input id="modal-name" type="text" placeholder="e.g. Hotel Stay, Dinner..." class="w-full bg-surface-container-low border border-outline-variant/50 rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Amount (₹)
-              *</label>
-            <input id="modal-amount" type="number" placeholder="0"
-              class="w-full bg-surface-container-low border border-outline-variant/50 rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
+            <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Amount (₹) *</label>
+            <input id="modal-amount" type="number" placeholder="0" class="w-full bg-surface-container-low border border-outline-variant/50 rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
           </div>
           <div>
-            <label
-              class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Category</label>
-            <select id="modal-cat"
-              class="w-full bg-surface-container-low border border-outline-variant/50 rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/30">
+            <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Category</label>
+            <select id="modal-cat" class="w-full bg-surface-container-low border border-outline-variant/50 rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/30">
               <option>Stay</option>
               <option>Food</option>
               <option>Transport</option>
@@ -479,52 +349,37 @@
         </div>
         <div>
           <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Date</label>
-          <input id="modal-date" type="date"
-            class="w-full bg-surface-container-low border border-outline-variant/50 rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
+          <input id="modal-date" type="date" class="w-full bg-surface-container-low border border-outline-variant/50 rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
         </div>
         <div>
-          <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Notes
-            (optional)</label>
-          <textarea id="modal-notes" rows="2" placeholder="Any extra details..."
-            class="w-full bg-surface-container-low border border-outline-variant/50 rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/30 resize-none"></textarea>
+          <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Notes (optional)</label>
+          <textarea id="modal-notes" rows="2" placeholder="Any extra details..." class="w-full bg-surface-container-low border border-outline-variant/50 rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/30 resize-none"></textarea>
         </div>
       </div>
       <div class="flex gap-3 mt-6">
-        <button onclick="saveExpense()"
-          class="flex-1 bg-primary text-white py-3 rounded-2xl font-bold hover:opacity-90 active:scale-[0.98] transition-all shadow-lg shadow-primary/20">Save
-          Expense</button>
-        <button onclick="closeAddModal()"
-          class="px-5 py-3 border border-outline-variant text-on-surface-variant rounded-2xl font-semibold hover:bg-surface-container transition-all">Cancel</button>
+        <button onclick="saveExpense()" class="flex-1 bg-primary text-white py-3 rounded-2xl font-bold hover:opacity-90 active:scale-[0.98] transition-all shadow-lg shadow-primary/20">Save Expense</button>
+        <button onclick="closeAddModal()" class="px-5 py-3 border border-outline-variant text-on-surface-variant rounded-2xl font-semibold hover:bg-surface-container transition-all">Cancel</button>
       </div>
     </div>
   </div>
 
   <!-- BUDGET SETUP MODAL -->
-  <div id="budget-modal"
-    class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
-    onclick="if(event.target===this)closeBudgetModal()">
+  <div id="budget-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4" onclick="if(event.target===this)closeBudgetModal()">
     <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl modal-enter">
       <h3 class="text-xl font-bold text-primary mb-5">Set Trip Budget 🎯</h3>
       <div class="space-y-4">
         <div>
-          <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Trip
-            Name</label>
-          <input id="bm-trip" type="text" placeholder="e.g. Trip to Agra"
-            class="w-full bg-surface-container-low border border-outline-variant/50 rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
+          <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Trip Name</label>
+          <input id="bm-trip" type="text" placeholder="e.g. Trip to Agra" class="w-full bg-surface-container-low border border-outline-variant/50 rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
         </div>
         <div>
-          <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Total Budget
-            (₹)</label>
-          <input id="bm-amount" type="number" placeholder="50000"
-            class="w-full bg-surface-container-low border border-outline-variant/50 rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
+          <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">Total Budget (₹)</label>
+          <input id="bm-amount" type="number" placeholder="50000" class="w-full bg-surface-container-low border border-outline-variant/50 rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
         </div>
       </div>
       <div class="flex gap-3 mt-6">
-        <button onclick="saveBudget()"
-          class="flex-1 bg-primary text-white py-3 rounded-2xl font-bold hover:opacity-90 transition-all">Set
-          Budget</button>
-        <button onclick="closeBudgetModal()"
-          class="px-5 py-3 border border-outline-variant text-on-surface-variant rounded-2xl font-semibold">Cancel</button>
+        <button onclick="saveBudget()" class="flex-1 bg-primary text-white py-3 rounded-2xl font-bold hover:opacity-90 transition-all">Set Budget</button>
+        <button onclick="closeBudgetModal()" class="px-5 py-3 border border-outline-variant text-on-surface-variant rounded-2xl font-semibold">Cancel</button>
       </div>
     </div>
   </div>
@@ -533,7 +388,6 @@
   <div id="toast" class="toast"></div>
 
   <script>
-    // ── SUPABASE ──────────────────────────────────────────────
     const SUPABASE_URL = 'https://lpuiwcvobxsfrzokmqbc.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxwdWl3Y3ZvYnhzZnJ6b2ttcWJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0NjcxNTUsImV4cCI6MjA5NDA0MzE1NX0.jfMj2IgEEEk_A0AB4IEUgsExHkTovHRycnFZIKW5774';
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -543,12 +397,12 @@
     let totalBudget = 0;
     let tripName = 'My Trip';
     let searchQuery = '';
+    let budgetWarningShown = false;
 
     const catIcons = { Stay: 'hotel', Food: 'restaurant', Transport: 'train', Purchase: 'shopping_bag', Other: 'receipt' };
     const catColors = { Stay: 'text-primary-container', Food: 'text-secondary', Transport: 'text-tertiary', Purchase: 'text-primary', Other: 'text-on-surface-variant' };
     const catBg = { Stay: 'bg-primary-container/10', Food: 'bg-secondary-container/20', Transport: 'bg-tertiary-fixed/30', Purchase: 'bg-primary/10', Other: 'bg-surface-container' };
 
-    // ── INIT ──────────────────────────────────────────────────
     async function init() {
       const { data: { session } } = await sb.auth.getSession();
       if (!session) { window.location.href = 'login.html'; return; }
@@ -558,23 +412,23 @@
       document.getElementById('sb-avatar').textContent = name.charAt(0).toUpperCase();
       document.getElementById('modal-date').value = new Date().toISOString().split('T')[0];
 
-      // Load from localStorage (budget settings)
       const saved = JSON.parse(localStorage.getItem('traveloop_budget_' + currentUser.id) || '{}');
-      if (saved.totalBudget) { totalBudget = saved.totalBudget; tripName = saved.tripName || 'My Trip'; }
-      else { document.getElementById('setup-banner').classList.remove('hidden'); }
+      if (saved.totalBudget) {
+        totalBudget = saved.totalBudget;
+        tripName = saved.tripName || 'My Trip';
+      } else {
+        document.getElementById('setup-banner').classList.remove('hidden');
+      }
 
       await loadExpenses();
     }
 
     async function loadExpenses() {
-      const { data, error } = await sb.from('budget')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const { data, error } = await sb.from('budget').select('*').order('created_at', { ascending: false });
       if (!error && data) expenses = data;
       renderAll();
     }
 
-    // ── RENDER ────────────────────────────────────────────────
     function renderAll() {
       updateStats();
       renderExpenses();
@@ -588,10 +442,25 @@
 
       document.getElementById('stat-budget').textContent = '₹' + totalBudget.toLocaleString('en-IN');
       document.getElementById('stat-spent').textContent = '₹' + total.toLocaleString('en-IN');
-      document.getElementById('stat-remaining').textContent = '₹' + Math.max(0, remaining).toLocaleString('en-IN');
+      document.getElementById('stat-remaining').textContent = remaining < 0
+        ? '-₹' + Math.abs(remaining).toLocaleString('en-IN')
+        : '₹' + remaining.toLocaleString('en-IN');
       document.getElementById('stat-remaining').className = 'text-3xl font-bold ' + (remaining < 0 ? 'text-error' : 'text-secondary');
       document.getElementById('stat-pct').textContent = pct + '% of budget';
       document.getElementById('stat-count').textContent = expenses.length;
+
+      // Budget warning banner
+      const warningBanner = document.getElementById('budget-warning-banner');
+      if (totalBudget > 0 && total >= totalBudget) {
+        warningBanner.classList.remove('hidden');
+        if (!budgetWarningShown) {
+          budgetWarningShown = true;
+          showToast('⚠️ Budget limit reached! You have exceeded your budget.', 'warning');
+        }
+      } else {
+        warningBanner.classList.add('hidden');
+        if (total < totalBudget) budgetWarningShown = false;
+      }
     }
 
     function renderExpenses() {
@@ -609,32 +478,35 @@
       }
 
       el.innerHTML = filtered.map(e => `
-      <div class="expense-row flex items-center gap-4 p-4 rounded-2xl hover:bg-surface-container-low cursor-pointer group">
-        <div class="w-12 h-12 rounded-2xl ${catBg[e.category] || 'bg-surface-container'} flex items-center justify-center ${catColors[e.category] || 'text-on-surface-variant'} flex-shrink-0">
-          <span class="material-symbols-outlined">${catIcons[e.category] || 'receipt'}</span>
+        <div class="expense-row flex items-center gap-4 p-4 rounded-2xl hover:bg-surface-container-low cursor-pointer group">
+          <div class="w-12 h-12 rounded-2xl ${catBg[e.category] || 'bg-surface-container'} flex items-center justify-center ${catColors[e.category] || 'text-on-surface-variant'} flex-shrink-0">
+            <span class="material-symbols-outlined">${catIcons[e.category] || 'receipt'}</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-on-surface text-sm truncate">${e.description || 'Expense'}</p>
+            <p class="text-xs text-on-surface-variant">${e.category} • ${e.date ? new Date(e.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}</p>
+            ${e.notes ? `<p class="text-xs text-on-surface-variant/60 truncate mt-0.5">${e.notes}</p>` : ''}
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="font-bold text-sm ${parseFloat(e.amount) > 10000 ? 'text-error' : 'text-on-surface'}">-₹${parseFloat(e.amount).toLocaleString('en-IN')}</span>
+            <button onclick="deleteExpense('${e.id}')" class="opacity-0 group-hover:opacity-100 w-7 h-7 flex items-center justify-center text-error/60 hover:text-error hover:bg-error/10 rounded-full transition-all">
+              <span class="material-symbols-outlined text-sm">delete</span>
+            </button>
+          </div>
         </div>
-        <div class="flex-1 min-w-0">
-          <p class="font-semibold text-on-surface text-sm truncate">${e.description || 'Expense'}</p>
-          <p class="text-xs text-on-surface-variant">${e.category} • ${e.date ? new Date(e.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}</p>
-          ${e.notes ? `<p class="text-xs text-on-surface-variant/60 truncate mt-0.5">${e.notes}</p>` : ''}
-        </div>
-        <div class="flex items-center gap-3">
-          <span class="font-bold text-sm ${parseFloat(e.amount) > 10000 ? 'text-error' : 'text-on-surface'}">-₹${parseFloat(e.amount).toLocaleString('en-IN')}</span>
-          <button onclick="deleteExpense('${e.id}')" class="opacity-0 group-hover:opacity-100 w-7 h-7 flex items-center justify-center text-error/60 hover:text-error hover:bg-error/10 rounded-full transition-all">
-            <span class="material-symbols-outlined text-sm">delete</span>
-          </button>
-        </div>
-      </div>
-    `).join('');
+      `).join('');
     }
 
     function updateCharts() {
       const cats = { Stay: 0, Food: 0, Transport: 0, Purchase: 0, Other: 0 };
-      expenses.forEach(e => { if (cats[e.category] !== undefined) cats[e.category] += parseFloat(e.amount || 0); else cats.Other += parseFloat(e.amount || 0); });
+      expenses.forEach(e => {
+        if (cats[e.category] !== undefined) cats[e.category] += parseFloat(e.amount || 0);
+        else cats.Other += parseFloat(e.amount || 0);
+      });
       const total = Object.values(cats).reduce((a, b) => a + b, 0);
       const pct = totalBudget > 0 ? Math.round((total / totalBudget) * 100) : 0;
 
-      // Update legend
+      // Update legend with actual per-category totals
       document.getElementById('cat-stay').textContent = '₹' + cats.Stay.toLocaleString('en-IN');
       document.getElementById('cat-food').textContent = '₹' + cats.Food.toLocaleString('en-IN');
       document.getElementById('cat-transport').textContent = '₹' + cats.Transport.toLocaleString('en-IN');
@@ -642,29 +514,33 @@
       document.getElementById('cat-other').textContent = '₹' + cats.Other.toLocaleString('en-IN');
       document.getElementById('donut-pct').textContent = pct + '%';
 
-      // Donut animation
+      // Donut chart — all 5 segments now including Purchase
       const circum = 502;
-      const colors = ['#0ea5e9', '#4edea3', '#de8712', '#89ceff', '#e0e3e5'];
-      const ids = ['donut-stay', 'donut-food', 'donut-transport', 'donut-other'];
-      const vals = [cats.Stay, cats.Food, cats.Transport, cats.Purchase + cats.Other];
-      let offset = 0;
-      vals.forEach((v, i) => {
-        const slice = total > 0 ? (v / total) * circum : 0;
-        const el = document.getElementById(ids[i]);
-        if (el) {
-          el.style.strokeDashoffset = circum - slice;
-          el.style.transform = `rotate(${(offset / circum) * 360 - 90}deg)`;
-          el.setAttribute('transform', `rotate(${(offset / circum) * 360 - 90} 100 100)`);
-          offset += slice;
-        }
+      const segments = [
+        { id: 'donut-stay',      val: cats.Stay },
+        { id: 'donut-food',      val: cats.Food },
+        { id: 'donut-transport', val: cats.Transport },
+        { id: 'donut-purchase',  val: cats.Purchase },
+        { id: 'donut-other',     val: cats.Other },
+      ];
+      let cumulativeAngle = -90;
+      segments.forEach(seg => {
+        const el = document.getElementById(seg.id);
+        if (!el) return;
+        const slice = total > 0 ? (seg.val / total) * circum : 0;
+        el.style.strokeDashoffset = circum - slice;
+        el.setAttribute('transform', `rotate(${cumulativeAngle} 100 100)`);
+        cumulativeAngle += total > 0 ? (seg.val / total) * 360 : 0;
       });
 
       // Health bars
       const hpUpdate = (id, val, max) => {
         const p = max > 0 ? Math.min(100, Math.round((val / max) * 100)) : 0;
         document.getElementById('hp-' + id).textContent = p + '%';
-        document.getElementById('hb-' + id).style.width = p + '%';
-        document.getElementById('hb-' + id).className = document.getElementById('hb-' + id).className.replace(/bg-error/, '') + (p > 90 ? ' !bg-error' : '');
+        const bar = document.getElementById('hb-' + id);
+        bar.style.width = p + '%';
+        if (p >= 100) bar.classList.add('!bg-error');
+        else bar.classList.remove('!bg-error');
       };
       hpUpdate('overall', total, totalBudget);
       hpUpdate('stay', cats.Stay, totalBudget * 0.4);
@@ -674,20 +550,31 @@
       // Bar chart
       const barEl = document.getElementById('bar-chart-content');
       const maxCat = Math.max(...Object.values(cats), 1);
+      const barColors = { Stay: 'bg-primary-container', Food: 'bg-secondary-fixed-dim', Transport: 'bg-tertiary-container', Purchase: 'bg-primary-fixed-dim', Other: 'bg-surface-container-high' };
       barEl.innerHTML = Object.entries(cats).map(([cat, val]) => `
-      <div class="flex items-center gap-4">
-        <span class="text-xs font-medium text-on-surface-variant w-20 flex-shrink-0">${cat}</span>
-        <div class="flex-1 h-8 bg-surface-container rounded-lg overflow-hidden">
-          <div class="h-full ${cat === 'Stay' ? 'bg-primary-container' : cat === 'Food' ? 'bg-secondary-fixed-dim' : cat === 'Transport' ? 'bg-tertiary-container' : 'bg-primary-fixed-dim'} rounded-lg category-bar flex items-center justify-end pr-2" style="width:${Math.round((val / maxCat) * 100)}%">
-            ${val > 0 ? `<span class="text-xs font-bold text-white/90">₹${val.toLocaleString('en-IN')}</span>` : ''}
+        <div class="flex items-center gap-4">
+          <span class="text-xs font-medium text-on-surface-variant w-20 flex-shrink-0">${cat}</span>
+          <div class="flex-1 h-8 bg-surface-container rounded-lg overflow-hidden">
+            <div class="h-full ${barColors[cat] || 'bg-primary-fixed-dim'} rounded-lg category-bar flex items-center justify-end pr-2" style="width:${Math.round((val / maxCat) * 100)}%">
+              ${val > 0 ? `<span class="text-xs font-bold text-white/90">₹${val.toLocaleString('en-IN')}</span>` : ''}
+            </div>
           </div>
         </div>
-      </div>
-    `).join('');
+      `).join('');
 
-      // AI Tips update
-      if (total > 0 && pct > 80) {
-        document.getElementById('ai-tips').innerHTML = `<div class="p-3 bg-error/5 rounded-xl border border-error/20"><p class="font-semibold text-error mb-1">⚠️ Over 80% spent!</p><p class="text-xs">Consider cutting ${Object.entries(cats).sort((a, b) => b[1] - a[1])[0][0].toLowerCase()} expenses.</p></div>`;
+      // AI Tips — update based on spending
+      if (total > 0 && pct >= 100) {
+        document.getElementById('ai-tips').innerHTML = `
+          <div class="p-3 bg-error/5 rounded-xl border border-error/20">
+            <p class="font-semibold text-error mb-1">🚨 Budget Exhausted!</p>
+            <p>You've used 100% of your budget. Consider increasing it or reducing ${Object.entries(cats).sort((a,b)=>b[1]-a[1])[0][0].toLowerCase()} spending.</p>
+          </div>`;
+      } else if (total > 0 && pct > 80) {
+        document.getElementById('ai-tips').innerHTML = `
+          <div class="p-3 bg-error/5 rounded-xl border border-error/20">
+            <p class="font-semibold text-error mb-1">⚠️ Over 80% spent!</p>
+            <p>Consider cutting ${Object.entries(cats).sort((a,b)=>b[1]-a[1])[0][0].toLowerCase()} expenses to stay within budget.</p>
+          </div>`;
       }
     }
 
@@ -718,6 +605,10 @@
       expenses.unshift(data);
       renderAll();
       closeAddModal();
+      // Reset modal fields
+      document.getElementById('modal-name').value = '';
+      document.getElementById('modal-amount').value = '';
+      document.getElementById('modal-notes').value = '';
       showToast('Expense added! ✅', 'success');
     }
 
@@ -755,6 +646,7 @@
       if (!amount) { showToast('Enter a budget amount', 'error'); return; }
       totalBudget = amount;
       tripName = name;
+      budgetWarningShown = false;
       localStorage.setItem('traveloop_budget_' + currentUser.id, JSON.stringify({ totalBudget, tripName }));
       document.getElementById('setup-banner').classList.add('hidden');
       closeBudgetModal();
@@ -767,8 +659,10 @@
       expenses.forEach(e => rows.push([e.description, e.amount, e.category, e.date || '', e.notes || '']));
       const csv = rows.map(r => r.join(',')).join('\n');
       const blob = new Blob([csv], { type: 'text/csv' });
-      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-      a.download = 'traveloop_budget.csv'; a.click();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'trip_planner_budget.csv';
+      a.click();
       showToast('Exported! 📥', 'success');
     }
 
@@ -777,27 +671,34 @@
       window.location.href = 'login.html';
     }
 
-    // ── MODALS ────────────────────────────────────────────────
-    function openAddExpenseModal() { document.getElementById('add-modal').classList.remove('hidden'); }
+    function openAddExpenseModal() {
+      document.getElementById('modal-date').value = new Date().toISOString().split('T')[0];
+      document.getElementById('add-modal').classList.remove('hidden');
+    }
     function closeAddModal() { document.getElementById('add-modal').classList.add('hidden'); }
+
     function openBudgetSetupModal() {
       const saved = JSON.parse(localStorage.getItem('traveloop_budget_' + (currentUser?.id || '')) || '{}');
-      if (saved.totalBudget) { document.getElementById('bm-amount').value = saved.totalBudget; document.getElementById('bm-trip').value = saved.tripName || ''; }
+      if (saved.totalBudget) {
+        document.getElementById('bm-amount').value = saved.totalBudget;
+        document.getElementById('bm-trip').value = saved.tripName || '';
+      }
       document.getElementById('budget-modal').classList.remove('hidden');
     }
     function closeBudgetModal() { document.getElementById('budget-modal').classList.add('hidden'); }
 
-    // ── TOAST ─────────────────────────────────────────────────
     function showToast(msg, type = 'success') {
       const t = document.getElementById('toast');
       t.textContent = msg;
       t.className = `toast ${type} show`;
-      setTimeout(() => t.classList.remove('show'), 3000);
+      setTimeout(() => t.classList.remove('show'), 3500);
     }
 
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeAddModal(); closeBudgetModal(); } });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { closeAddModal(); closeBudgetModal(); }
+    });
+
     init();
   </script>
 </body>
-
 </html>

@@ -1,861 +1,1107 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="utf-8" />
   <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>Trip Planner — Dashboard</title>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap"
-    rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Lora:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            "background": "#f7f9fb", "primary": "#006591", "primary-container": "#0ea5e9",
-            "on-primary": "#ffffff", "on-primary-container": "#003751", "primary-fixed": "#c9e6ff",
-            "secondary": "#006c49", "secondary-container": "#6cf8bb", "on-secondary-container": "#00714d",
-            "tertiary": "#8a5100", "tertiary-container": "#de8712",
-            "surface": "#f7f9fb", "surface-variant": "#e0e3e5", "surface-container": "#eceef0",
-            "surface-container-low": "#f2f4f6", "surface-container-high": "#e6e8ea",
-            "surface-container-lowest": "#ffffff", "surface-container-highest": "#e0e3e5",
-            "on-surface": "#191c1e", "on-surface-variant": "#3e4850",
-            "outline": "#6e7881", "outline-variant": "#bec8d2",
-            "error": "#ba1a1a", "error-container": "#ffdad6", "on-error": "#ffffff", "on-error-container": "#93000a",
-            "inverse-surface": "#2d3133", "inverse-on-surface": "#eff1f3", "inverse-primary": "#89ceff"
+            "background":"#f0f4f8","primary":"#005f8f","primary-container":"#0ea5e9",
+            "on-primary":"#ffffff","on-primary-container":"#003450","primary-fixed":"#c9e6ff",
+            "secondary":"#006c49","secondary-container":"#6cf8bb","on-secondary-container":"#00714d",
+            "tertiary":"#8a5100","tertiary-container":"#de8712","on-tertiary-container":"#5a3400",
+            "surface":"#f0f4f8","surface-variant":"#dde3e9","surface-container":"#e8edf1",
+            "surface-container-low":"#eef2f5","surface-container-high":"#e0e6ea",
+            "surface-container-lowest":"#ffffff","surface-container-highest":"#d8dfe5",
+            "on-surface":"#171b1e","on-surface-variant":"#3d4750",
+            "outline":"#6c7880","outline-variant":"#bcc8d2",
+            "error":"#ba1a1a","error-container":"#ffdad6","on-error":"#ffffff","on-error-container":"#93000a",
+            "inverse-surface":"#2c3033","inverse-on-surface":"#edf1f4","inverse-primary":"#89ceff"
           },
-          fontFamily: { "display-lg": ["Plus Jakarta Sans"], "body-md": ["Inter"], "title-md": ["Plus Jakarta Sans"] },
-          fontSize: {
-            "display-lg": ["48px", { "lineHeight": "1.2", "fontWeight": "700" }],
-            "headline-lg": ["32px", { "lineHeight": "1.3", "fontWeight": "600" }],
-            "title-md": ["20px", { "lineHeight": "1.4", "fontWeight": "600" }],
-            "body-md": ["16px", { "lineHeight": "1.6" }],
-            "label-sm": ["14px", { "lineHeight": "1.2", "fontWeight": "500" }]
+          fontFamily:{
+            "display":["Plus Jakarta Sans","sans-serif"],
+            "serif-display":["Lora","Georgia","serif"],
+            "body":["Plus Jakarta Sans","sans-serif"]
           }
         }
       }
     }
   </script>
   <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+
     .glass-sidebar {
-      background: rgba(255, 255, 255, 0.75);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      background: rgba(255,255,255,0.82);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
     }
-
     .glass-card {
-      background: rgba(255, 255, 255, 0.72);
+      background: rgba(255,255,255,0.75);
       backdrop-filter: blur(16px);
-      border: 1.5px solid rgba(255, 255, 255, 0.35);
+      border: 1.5px solid rgba(255,255,255,0.5);
     }
-
-    .timeline-path {
-      background-image: repeating-linear-gradient(0deg, #0ea5e9, #0ea5e9 4px, transparent 4px, transparent 8px);
-    }
-
     .active-pill {
-      position: absolute;
-      left: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 4px;
-      height: 24px;
-      background-color: #006591;
-      border-radius: 0 4px 4px 0;
+      position:absolute;left:0;top:50%;transform:translateY(-50%);
+      width:4px;height:24px;background:#005f8f;border-radius:0 4px 4px 0;
     }
+    .modal-enter { animation: modalIn 0.22s cubic-bezier(.4,0,.2,1) both; }
+    @keyframes modalIn { from{opacity:0;transform:scale(0.96)} to{opacity:1;transform:scale(1)} }
 
-    .modal-enter {
-      animation: modalIn 0.25s cubic-bezier(.4, 0, .2, 1) both;
+    .trip-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .trip-card:hover { transform: scale(1.018); box-shadow: 0 24px 48px rgba(0,95,143,0.14); }
+
+    /* Photo grid inside trip */
+    .photo-slot {
+      aspect-ratio:1;border-radius:12px;overflow:hidden;cursor:pointer;
+      background:#e8edf1;border:2px dashed #bcc8d2;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      transition:all 0.2s;font-size:0.7rem;color:#6c7880;text-align:center;padding:8px;
+      position:relative;
     }
-
-    @keyframes modalIn {
-      from {
-        opacity: 0;
-        transform: scale(0.95)
-      }
-
-      to {
-        opacity: 1;
-        transform: scale(1)
-      }
+    .photo-slot:hover { border-color:#0ea5e9;background:#e8f5ff; }
+    .photo-slot img { position:absolute;inset:0;width:100%;height:100%;object-fit:cover; }
+    .photo-slot .overlay {
+      position:absolute;inset:0;background:rgba(0,95,143,0.55);opacity:0;
+      display:flex;align-items:center;justify-content:center;
+      transition:opacity 0.2s;color:white;font-size:0.75rem;font-weight:600;
     }
+    .photo-slot:hover .overlay { opacity:1; }
 
-    .trip-card {
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    /* Avatar upload */
+    .avatar-upload-ring {
+      position:relative;width:96px;height:96px;cursor:pointer;
     }
+    .avatar-upload-ring img, .avatar-upload-ring .av-initials {
+      width:96px;height:96px;border-radius:50%;object-fit:cover;
+      border:4px solid #c9e6ff;
+    }
+    .av-initials {
+      display:flex;align-items:center;justify-content:center;
+      background:#005f8f;color:#fff;font-size:2rem;font-weight:800;
+    }
+    .avatar-upload-ring .upload-badge {
+      position:absolute;bottom:2px;right:2px;width:28px;height:28px;border-radius:50%;
+      background:#005f8f;border:3px solid #fff;
+      display:flex;align-items:center;justify-content:center;
+      color:white;font-size:0.9rem;
+    }
+    .avatar-upload-ring:hover .upload-badge { background:#0ea5e9; }
 
-    .trip-card:hover {
-      transform: scale(1.015);
-      box-shadow: 0 20px 40px rgba(0, 101, 145, 0.12);
+    /* Toast */
+    #toast {
+      position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
+      padding:11px 26px;border-radius:14px;font-weight:600;font-size:13px;
+      z-index:9999;transition:opacity 0.3s;pointer-events:none;
+      box-shadow:0 8px 24px rgba(0,0,0,0.15);
     }
+    #toast.success { background:#006c49;color:#fff; }
+    #toast.error   { background:#ba1a1a;color:#fff; }
+    #toast.info    { background:#005f8f;color:#fff; }
+    #toast.hidden  { opacity:0; }
 
-    .toast {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 12px 24px;
-      border-radius: 12px;
-      font-weight: 600;
-      font-size: 14px;
-      z-index: 9999;
-      transition: opacity 0.3s;
-    }
+    /* Page fade in */
+    @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+    .fade-up { animation: fadeUp 0.4s ease both; }
+    .fade-up-2 { animation: fadeUp 0.4s 0.08s ease both; }
+    .fade-up-3 { animation: fadeUp 0.4s 0.16s ease both; }
+    .fade-up-4 { animation: fadeUp 0.4s 0.24s ease both; }
 
-    .toast.success {
-      background: #006c49;
-      color: white;
-    }
+    /* Scroll snap for trip row */
+    .trip-scroll { display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:8px; }
+    .trip-scroll::-webkit-scrollbar { height:4px; }
+    .trip-scroll::-webkit-scrollbar-thumb { background:#bcc8d2;border-radius:99px; }
+    .trip-scroll > * { scroll-snap-align:start;flex-shrink:0; }
 
-    .toast.error {
-      background: #ba1a1a;
-      color: white;
-    }
+    /* Photo modal backdrop */
+    .photo-modal { position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:200;display:flex;align-items:center;justify-content:center; }
+    .photo-modal img { max-width:90vw;max-height:88vh;border-radius:14px;object-fit:contain; }
+
+    /* Uploading spinner */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin { animation: spin 0.8s linear infinite; }
   </style>
 </head>
+<body class="bg-background text-on-surface min-h-screen">
 
-<body class="bg-background font-body-md text-on-surface min-h-screen">
-
-  <!-- SIDEBAR -->
-  <aside
-    class="fixed left-0 top-0 h-full w-[280px] glass-sidebar border-r border-white/30 shadow-sm flex flex-col py-8 z-50">
-    <div class="px-8 mb-10">
-      <div class="flex items-center gap-3">
-        <span class="material-symbols-outlined text-primary text-3xl"
-          style="font-variation-settings:'FILL' 1">travel_explore</span>
-        <h1 class="font-display-lg text-2xl text-primary font-bold">Traveloop</h1>
-      </div>
-      <p class="text-label-sm text-on-surface-variant mt-1 opacity-70">Personalized Planning</p>
-    </div>
-    <nav class="flex-1 space-y-1 px-3">
-      <a class="relative flex items-center gap-3 bg-primary-container/20 text-primary px-5 py-3 rounded-xl transition-all"
-        href="dashboard.html">
-        <div class="active-pill"></div>
-        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">dashboard</span>
-        <span class="font-semibold text-sm">Dashboard</span>
-      </a>
-      <a class="flex items-center gap-3 text-on-surface-variant px-5 py-3 rounded-xl hover:bg-primary-container/10 hover:text-primary transition-all"
-        href="itinerary.html">
-        <span class="material-symbols-outlined">event_note</span><span class="text-sm">Itinerary</span>
-      </a>
-      <a class="flex items-center gap-3 text-on-surface-variant px-5 py-3 rounded-xl hover:bg-primary-container/10 hover:text-primary transition-all"
-        href="friends.html">
-        <span class="material-symbols-outlined">group</span><span class="text-sm">Friends</span>
-      </a>
-      <a class="flex items-center gap-3 text-on-surface-variant px-5 py-3 rounded-xl hover:bg-primary-container/10 hover:text-primary transition-all"
-        href="budget.html">
-        <span class="material-symbols-outlined">payments</span><span class="text-sm">Budget</span>
-      </a>
-      <a class="flex items-center gap-3 text-on-surface-variant px-5 py-3 rounded-xl hover:bg-primary-container/10 hover:text-primary transition-all"
-        href="packing.html">
-        <span class="material-symbols-outlined">inventory_2</span><span class="text-sm">Packing List</span>
-      </a>
-      <a class="flex items-center gap-3 text-on-surface-variant px-5 py-3 rounded-xl hover:bg-primary-container/10 hover:text-primary transition-all"
-        href="notes.html">
-        <span class="material-symbols-outlined">description</span><span class="text-sm">Notes</span>
-      </a>
-      <a class="flex items-center gap-3 text-on-surface-variant px-5 py-3 rounded-xl hover:bg-primary-container/10 hover:text-primary transition-all"
-        href="shared.html">
-        <span class="material-symbols-outlined">share</span><span class="text-sm">Shared Trip</span>
-      </a>
-    </nav>
-    <div class="px-6 mt-auto">
-      <button onclick="window.location.href='route-planner.html'"
-        class="w-full py-3 px-5 rounded-xl bg-primary text-white font-semibold text-sm flex items-center justify-center gap-2 hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 active:scale-[0.98]">
-        <span class="material-symbols-outlined text-sm">add_circle</span> Plan New Trip
-      </button>
-      <div class="mt-6 flex items-center gap-3 px-2">
-        <div class="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
-          onclick="openProfileModal()">
-          <!-- Avatar: initials shown, replaced by photo if available -->
-          <div id="sidebar-avatar"
-            class="w-10 h-10 rounded-full ring-2 ring-primary-container bg-primary flex items-center justify-center text-white font-bold text-sm">
-            ?</div>
-          <div>
-            <p id="sidebar-name" class="text-sm font-bold text-on-surface">Loading...</p>
-            <p class="text-xs text-on-surface-variant">Pro Explorer 🌏</p>
-          </div>
-        </div>
-        <button onclick="handleLogout()"
-          class="ml-auto w-8 h-8 flex items-center justify-center text-primary/50 hover:bg-primary/10 rounded-full transition-all"
-          title="Logout">
-          <span class="material-symbols-outlined text-sm">logout</span>
-        </button>
-      </div>
-    </div>
-  </aside>
-
-  <!-- TOPBAR -->
-  <header
-    class="fixed top-0 right-0 w-[calc(100%-280px)] h-16 px-10 bg-white/10 backdrop-blur-md flex justify-between items-center z-40 border-b border-white/20">
+<!-- SIDEBAR -->
+<aside class="fixed left-0 top-0 h-full w-[272px] glass-sidebar border-r border-white/40 shadow-sm flex flex-col py-8 z-50">
+  <div class="px-7 mb-9">
     <div class="flex items-center gap-3">
-      <h2 class="font-semibold text-primary text-lg">Royal Rajasthan & South India</h2>
-      <span class="px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container text-xs font-bold">In
-        Progress</span>
+      <span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings:'FILL' 1">travel_explore</span>
+      <h1 class="font-display text-2xl text-primary font-bold tracking-tight">Trip Planner</h1>
     </div>
-    <div class="flex items-center gap-4">
-      <div class="relative hidden lg:block">
-        <span
-          class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
-        <input
-          class="pl-9 pr-4 py-2 bg-white/50 border border-white/30 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 w-56"
-          placeholder="Search trips..." type="text" />
-      </div>
-      <button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
-        <span class="material-symbols-outlined">notifications</span>
-      </button>
-      <!-- Topbar avatar: initials circle, clicking opens profile modal -->
-      <div id="topbar-avatar" onclick="openProfileModal()"
-        class="w-9 h-9 rounded-full ring-2 ring-white/50 cursor-pointer bg-primary flex items-center justify-center text-white font-bold text-sm">
-        ?</div>
-    </div>
-  </header>
-
-  <!-- MAIN CONTENT -->
-  <main class="ml-[280px] min-h-screen pt-24 px-10 pb-12 max-w-[1200px]">
-
-    <!-- Welcome -->
-    <section class="mb-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-      <div>
-        <h1 id="welcome-msg" class="font-display-lg text-4xl font-bold text-on-surface">Welcome back! 👋</h1>
-        <p class="text-on-surface-variant mt-2 text-lg">You have <strong class="text-primary">3 upcoming
-            adventures</strong> across India.</p>
-      </div>
-      <div class="glass-card p-4 rounded-3xl border-primary/20 bg-primary/5 flex items-center gap-4 animate-pulse">
-        <span class="material-symbols-outlined text-primary text-3xl">magic_button</span>
-        <div>
-          <p class="text-xs font-bold text-primary uppercase tracking-widest">AI Suggestion</p>
-          <p class="text-sm font-semibold">Try the new Budget Planner below!</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- AI SMART PLANNER WIDGET -->
-    <section class="mb-10 glass-card p-8 rounded-[2.5rem] border-primary/20 relative overflow-hidden">
-      <div class="absolute top-0 right-0 p-8 opacity-10">
-        <span class="material-symbols-outlined text-[120px] text-primary">auto_awesome</span>
-      </div>
-      <div class="relative z-10">
-        <div class="flex items-center gap-3 mb-6">
-          <div
-            class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20">
-            <span class="material-symbols-outlined">psychology</span>
-          </div>
-          <div>
-            <h3 class="text-2xl font-bold text-on-surface">AI Smart Trip Planner</h3>
-            <p class="text-sm text-on-surface-variant">Tell us your budget, we'll build your dream itinerary.</p>
-          </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div class="space-y-1">
-            <label class="text-[10px] font-bold text-on-surface-variant uppercase ml-2">Destination</label>
-            <select id="plan-dest"
-              class="w-full bg-white/50 border-white/40 rounded-2xl py-3 px-4 text-sm focus:ring-primary/30 outline-none">
-              <option value="Agra">Agra (Mughal Heritage)</option>
-              <option value="Jaipur">Jaipur (Pink City)</option>
-              <option value="Munnar">Munnar (Tea Country)</option>
-              <option value="Ooty">Ooty (Queen of Hills)</option>
-            </select>
-          </div>
-          <div class="space-y-1">
-            <label class="text-[10px] font-bold text-on-surface-variant uppercase ml-2">Total Budget (₹)</label>
-            <input id="plan-budget" type="number" placeholder="e.g. 35000"
-              class="w-full bg-white/50 border-white/40 rounded-2xl py-3 px-4 text-sm focus:ring-primary/30 outline-none" />
-          </div>
-          <div class="space-y-1">
-            <label class="text-[10px] font-bold text-on-surface-variant uppercase ml-2">Duration (Days)</label>
-            <input id="plan-days" type="number" placeholder="e.g. 3"
-              class="w-full bg-white/50 border-white/40 rounded-2xl py-3 px-4 text-sm focus:ring-primary/30 outline-none" />
-          </div>
-          <div class="flex items-end">
-            <button onclick="generateAIPlan()"
-              class="w-full bg-primary text-white font-bold py-3 px-6 rounded-2xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 active:scale-95 flex items-center justify-center gap-2">
-              <span class="material-symbols-outlined text-sm">auto_awesome</span> Generate Plan
-            </button>
-          </div>
-        </div>
-        <div id="ai-plan-output" class="hidden animate-in fade-in zoom-in duration-500">
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div id="ai-plan-sidebar" class="space-y-4"></div>
-            <div id="ai-plan-timeline" class="lg:col-span-2 space-y-4"></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Quick Stats -->
-    <div class="grid grid-cols-4 gap-4 mb-10">
-      <div class="glass-card rounded-2xl p-5 flex items-center gap-4">
-        <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center"><span
-            class="material-symbols-outlined text-primary" style="font-variation-settings:'FILL' 1">luggage</span></div>
-        <div>
-          <p class="text-2xl font-bold text-on-surface">4</p>
-          <p class="text-xs text-on-surface-variant">Active Trips</p>
-        </div>
-      </div>
-      <div class="glass-card rounded-2xl p-5 flex items-center gap-4">
-        <div class="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center"><span
-            class="material-symbols-outlined text-secondary" style="font-variation-settings:'FILL' 1">location_on</span>
-        </div>
-        <div>
-          <p class="text-2xl font-bold text-on-surface">12</p>
-          <p class="text-xs text-on-surface-variant">Cities Covered</p>
-        </div>
-      </div>
-      <div class="glass-card rounded-2xl p-5 flex items-center gap-4">
-        <div class="w-12 h-12 rounded-xl bg-tertiary/10 flex items-center justify-center"><span
-            class="material-symbols-outlined text-tertiary"
-            style="font-variation-settings:'FILL' 1">calendar_today</span></div>
-        <div>
-          <p class="text-2xl font-bold text-on-surface">28</p>
-          <p class="text-xs text-on-surface-variant">Days Planned</p>
-        </div>
-      </div>
-      <div class="glass-card rounded-2xl p-5 flex items-center gap-4">
-        <div class="w-12 h-12 rounded-xl bg-error/10 flex items-center justify-center"><span
-            class="material-symbols-outlined text-error"
-            style="font-variation-settings:'FILL' 1">account_balance_wallet</span></div>
-        <div>
-          <p class="text-2xl font-bold text-on-surface">₹4.2L</p>
-          <p class="text-xs text-on-surface-variant">Total Budget</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Sample Trips -->
-    <section class="mb-12">
-      <div class="flex items-center justify-between mb-6">
-        <h3 class="text-2xl font-bold text-on-surface">Sample Inspirations</h3>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        <div
-          class="lg:col-span-2 trip-card group relative h-[400px] rounded-3xl overflow-hidden glass-card shadow-lg cursor-pointer"
-          onclick="openTripModal('goldenTriangle')">
-          <img
-            class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-            src="https://images.unsplash.com/photo-1564507592333-c60657eea523?w=900&h=600&fit=crop" alt="Taj Mahal" />
-          <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
-          <div class="absolute bottom-0 left-0 w-full p-7">
-            <span class="px-3 py-1 rounded-full bg-primary-container text-white text-xs font-bold">UPCOMING</span>
-            <h4 class="text-2xl font-bold text-white mt-2">The Golden Triangle</h4>
-            <div class="flex items-center gap-4 text-white/80 mt-1 text-sm">
-              <span class="flex items-center gap-1"><span
-                  class="material-symbols-outlined text-sm">calendar_today</span> Oct 12 – Oct 24</span>
-              <span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">location_on</span>
-                Agra · Jaipur · Delhi</span>
-            </div>
-          </div>
-        </div>
-        <div class="trip-card group relative h-[400px] rounded-3xl overflow-hidden glass-card shadow-lg cursor-pointer"
-          onclick="openTripModal('munnarTea')">
-          <img
-            class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-            src="The Best Places to Visit in Munnar in One Day.jpeg" alt="Munnar" />
-          <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
-          <div class="absolute bottom-0 left-0 w-full p-6 bg-white/20 backdrop-blur-sm">
-            <span
-              class="px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container text-xs font-bold">ACTIVE</span>
-            <h4 class="text-xl font-bold text-white mt-2">Munnar Tea Trails</h4>
-            <p class="text-white/70 text-sm mt-1">Sep 10 – Sep 18 · Munnar & Ooty</p>
-          </div>
-        </div>
-        <div class="trip-card group relative h-[340px] rounded-3xl overflow-hidden glass-card shadow-lg cursor-pointer"
-          onclick="openTripModal('jaipurCity')">
-          <img
-            class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-            src="https://images.unsplash.com/photo-1477587458883-47145ed94245?w=600&h=450&fit=crop" alt="Jaipur" />
-          <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-          <div class="absolute bottom-0 left-0 w-full p-5 bg-white/25 backdrop-blur-sm">
-            <h4 class="text-lg font-bold text-white">Jaipur Pink City</h4>
-            <p class="text-white/70 text-xs mt-0.5">Nov 5 – Nov 12 · 6 Stops</p>
-          </div>
-        </div>
-        <div class="trip-card group relative h-[340px] rounded-3xl overflow-hidden glass-card shadow-lg cursor-pointer"
-          onclick="openTripModal('goaBeach')">
-          <img
-            class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-            src="https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=600&h=450&fit=crop" alt="Goa" />
-          <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-          <div class="absolute bottom-0 left-0 w-full p-5 bg-white/25 backdrop-blur-sm">
-            <h4 class="text-lg font-bold text-white">Goa Coastal Escape</h4>
-            <p class="text-white/70 text-xs mt-0.5">Dec 20 – Dec 28 · 3 Beaches</p>
-          </div>
-        </div>
-        <div class="trip-card group relative h-[340px] rounded-3xl overflow-hidden glass-card shadow-lg cursor-pointer"
-          onclick="openTripModal('ootyHills')">
-          <img
-            class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-            src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=450&fit=crop" alt="Ooty" />
-          <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-          <div class="absolute bottom-0 left-0 w-full p-5 bg-white/25 backdrop-blur-sm">
-            <h4 class="text-lg font-bold text-white">Ooty Queen of Hills</h4>
-            <p class="text-white/70 text-xs mt-0.5">Jan 3 – Jan 10 · 5 Stops</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Saved Trips from Supabase -->
-    <section class="mb-12" id="saved-trips-section" style="display:none">
-      <div class="flex items-center justify-between mb-6">
-        <h3 class="text-2xl font-bold text-on-surface">My Saved Trips 📂</h3>
-        <span class="text-xs px-3 py-1 bg-primary/10 text-primary rounded-full font-bold uppercase tracking-widest">Your
-          Vault</span>
-      </div>
-      <div id="saved-trips-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
-    </section>
-
-    <!-- Bottom Widgets -->
-    <section class="grid grid-cols-1 lg:grid-cols-4 gap-5">
-      <div class="lg:col-span-1 glass-card p-6 rounded-3xl">
-        <div class="flex items-center justify-between mb-4">
-          <h5 class="font-semibold text-on-surface">Trip Budget</h5>
-          <span class="material-symbols-outlined text-primary"
-            style="font-variation-settings:'FILL' 1">account_balance_wallet</span>
-        </div>
-        <div class="relative w-28 h-28 mx-auto mb-4">
-          <svg class="w-full h-full -rotate-90">
-            <circle cx="56" cy="56" r="50" fill="transparent" stroke="#e0e3e5" stroke-width="10" />
-            <circle cx="56" cy="56" r="50" fill="transparent" stroke="#006591" stroke-width="10" stroke-dasharray="314"
-              stroke-dashoffset="88" />
-          </svg>
-          <div class="absolute inset-0 flex flex-col items-center justify-center">
-            <span class="font-bold text-base">₹3.1L</span>
-            <span class="text-[10px] text-on-surface-variant">Spent</span>
-          </div>
-        </div>
-        <p class="text-center text-xs text-on-surface-variant">72% of Golden Triangle budget</p>
-        <a href="budget.html" class="mt-4 block text-center text-xs text-primary font-semibold hover:underline">View
-          Full Budget →</a>
-      </div>
-      <div class="lg:col-span-2 glass-card p-6 rounded-3xl">
-        <h5 class="font-semibold text-on-surface mb-5">Today's Schedule — Agra</h5>
-        <div class="relative pl-10 space-y-5">
-          <div class="absolute left-4 top-2 bottom-2 w-0.5 border-l-2 border-dashed border-primary/30"></div>
-          <div class="relative flex items-center gap-3">
-            <div class="absolute -left-[26px] w-5 h-5 rounded-full bg-secondary flex items-center justify-center">
-              <span class="material-symbols-outlined text-white text-xs">check</span>
-            </div>
-            <div class="flex-1 py-2 px-4 glass-card rounded-xl">
-              <p class="text-sm font-semibold">Sunrise at Taj Mahal</p>
-              <p class="text-xs text-on-surface-variant">06:00 AM · Completed ✅</p>
-            </div>
-          </div>
-          <div class="relative flex items-center gap-3">
-            <div
-              class="absolute -left-[26px] w-5 h-5 rounded-full bg-white border-2 border-primary flex items-center justify-center">
-              <div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
-            </div>
-            <div class="flex-1 py-2 px-4 glass-card rounded-xl border-primary/40 bg-primary/5">
-              <p class="text-sm font-semibold text-primary">Agra Fort Tour</p>
-              <p class="text-xs text-primary">10:30 AM · In progress 🏛️</p>
-            </div>
-          </div>
-          <div class="relative flex items-center gap-3 opacity-50">
-            <div class="absolute -left-[26px] w-5 h-5 rounded-full bg-white border-2 border-outline-variant"></div>
-            <div class="flex-1 py-2 px-4 glass-card rounded-xl">
-              <p class="text-sm font-semibold">Fatehpur Sikri Visit</p>
-              <p class="text-xs text-on-surface-variant">02:00 PM · Upcoming</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="lg:col-span-1 flex flex-col gap-4">
-        <div class="glass-card p-5 rounded-3xl bg-primary/5 border-primary/20">
-          <div class="flex items-center justify-between mb-1">
-            <span class="material-symbols-outlined text-primary text-2xl"
-              style="font-variation-settings:'FILL' 1">wb_sunny</span>
-            <span class="text-2xl font-bold">32°C</span>
-          </div>
-          <p class="font-semibold text-sm">Sunny in Agra</p>
-          <p class="text-xs text-on-surface-variant mt-1">Best time to visit outdoor monuments: before noon.</p>
-        </div>
-        <div class="glass-card p-5 rounded-3xl bg-secondary/5">
-          <h6 class="text-xs font-bold text-secondary uppercase tracking-widest mb-2">🤖 AI Travel Tip</h6>
-          <p class="text-sm font-semibold text-on-surface">Book Taj Mahal tickets online</p>
-          <p class="text-xs text-on-surface-variant mt-1">Skip long queues — pre-book on asi.payumoney.com. Save ₹500 on
-            guides.</p>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <!-- ═══ PROFILE MODAL ═══ -->
-  <div id="profileModal"
-    class="hidden fixed inset-0 bg-black/50 z-[100] flex items-center justify-center backdrop-blur-sm"
-    onclick="if(event.target===this)closeProfileModal()">
-    <div class="bg-white rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl modal-enter">
-      <div class="flex justify-between items-center mb-6">
-        <h3 class="text-xl font-bold">My Profile</h3>
-        <button onclick="closeProfileModal()" class="text-on-surface-variant hover:text-on-surface p-1">
-          <span class="material-symbols-outlined">close</span>
-        </button>
-      </div>
-      <div class="flex flex-col items-center text-center mb-6">
-        <!-- Avatar circle with initials -->
-        <div id="modal-avatar"
-          class="w-24 h-24 rounded-full mb-4 ring-4 ring-primary-container bg-primary flex items-center justify-center text-white text-3xl font-bold">
-          ?</div>
-        <h2 id="modal-name" class="text-2xl font-bold">Loading...</h2>
-        <p class="text-on-surface-variant">Traveloop Explorer 🌏</p>
-      </div>
-      <div class="space-y-3 mb-6">
-        <div class="flex items-center justify-between p-3 bg-surface-container rounded-xl">
-          <span class="text-on-surface-variant text-sm">Email</span>
-          <span id="modal-email" class="font-semibold text-sm truncate ml-4">Loading...</span>
-        </div>
-        <div class="flex items-center justify-between p-3 bg-surface-container rounded-xl">
-          <span class="text-on-surface-variant text-sm">User ID</span>
-          <span id="modal-userid"
-            class="font-semibold text-[10px] opacity-50 ml-4 truncate max-w-[160px]">Loading...</span>
-        </div>
-        <div class="flex items-center justify-between p-3 bg-surface-container rounded-xl">
-          <span class="text-on-surface-variant text-sm">Member Since</span>
-          <span id="modal-joined" class="font-semibold text-sm ml-4">—</span>
-        </div>
-      </div>
-      <div class="flex gap-3">
-        <button onclick="closeProfileModal()"
-          class="flex-1 bg-primary text-white py-3 rounded-xl font-semibold hover:bg-primary/90 transition-all">Close</button>
-        <button onclick="handleLogout()"
-          class="px-4 py-3 rounded-xl border border-error text-error hover:bg-error/5 transition-all font-semibold text-sm">
-          Logout
-        </button>
-        <button onclick="window.location.href='profile.html'"
-          class="px-4 py-3 rounded-xl border border-outline-variant text-on-surface-variant hover:bg-surface-container transition-all">
-          <span class="material-symbols-outlined">edit</span>
-        </button>
-      </div>
-    </div>
+    <p class="text-xs text-on-surface-variant mt-1 opacity-60 font-medium">Your India Journey Planner</p>
   </div>
-
-  <!-- ═══ TRIP DETAIL MODAL ═══ -->
-  <div id="tripModal"
-    class="hidden fixed inset-0 bg-black/50 z-[100] flex items-center justify-center backdrop-blur-sm p-4 overflow-y-auto"
-    onclick="if(event.target===this)closeTripModal()">
-    <div class="bg-white rounded-3xl w-full max-w-2xl my-8 shadow-2xl modal-enter overflow-hidden">
-      <div id="tripModalHero" class="relative h-48 bg-gradient-to-br from-primary to-primary-container">
-        <div class="absolute inset-0 bg-black/30"></div>
-        <button onclick="closeTripModal()"
-          class="absolute top-4 right-4 bg-white/20 backdrop-blur-sm text-white p-2 rounded-full hover:bg-white/40 transition-all z-10">
-          <span class="material-symbols-outlined">close</span>
-        </button>
-        <div class="absolute bottom-5 left-6 z-10">
-          <div id="tripModalBadge" class="inline-block px-3 py-1 rounded-full text-xs font-bold mb-2"></div>
-          <h3 id="tripModalTitle" class="text-2xl font-bold text-white"></h3>
-          <p id="tripModalDates" class="text-white/80 text-sm mt-1"></p>
-        </div>
-      </div>
-      <div class="p-6 max-h-[60vh] overflow-y-auto">
-        <div id="tripModalContent" class="space-y-5"></div>
-      </div>
-      <div class="px-6 pb-6 flex gap-3">
-        <button onclick="closeTripModal()"
-          class="flex-1 bg-primary text-white py-3 rounded-xl font-semibold hover:bg-primary/90 transition-all">Close</button>
-        <a href="itinerary.html"
-          class="flex-1 py-3 rounded-xl font-semibold border border-primary text-primary text-center hover:bg-primary/5 transition-all">View
-          Itinerary →</a>
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══ FLOATING CHAT BOT ═══ -->
-  <div id="chat-widget" class="fixed bottom-6 right-6 z-[100] flex flex-col items-end">
-    <div id="chat-window"
-      class="hidden mb-4 w-96 h-[500px] rounded-2xl overflow-hidden shadow-2xl glass-card border border-white/40 flex flex-col transition-all duration-300 transform scale-95 opacity-0 origin-bottom-right">
-      <div class="bg-primary p-4 flex justify-between items-center text-white">
-        <div class="flex items-center gap-3">
-          <span class="material-symbols-outlined text-white">smart_toy</span>
-          <span class="font-bold">Budget Trip AI Bot</span>
-        </div>
-        <button onclick="toggleChat()" class="hover:bg-white/20 p-1 rounded-full transition-colors">
-          <span class="material-symbols-outlined">close</span>
-        </button>
-      </div>
-      <iframe src="chatbot.html" class="w-full flex-1 border-none" id="chat-iframe"></iframe>
-    </div>
-    <button onclick="toggleChat()"
-      class="w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-lg shadow-primary/30 hover:scale-110 active:scale-95 transition-all group">
-      <span id="chat-icon"
-        class="material-symbols-outlined text-3xl group-hover:rotate-12 transition-transform">chat</span>
+  <nav class="flex-1 space-y-0.5 px-3">
+    <a class="relative flex items-center gap-3 bg-primary/10 text-primary px-5 py-3 rounded-xl transition-all" href="dashboard.html">
+      <div class="active-pill"></div>
+      <span class="material-symbols-outlined text-xl" style="font-variation-settings:'FILL' 1">dashboard</span>
+      <span class="font-semibold text-sm">Dashboard</span>
+    </a>
+    <a class="flex items-center gap-3 text-on-surface-variant px-5 py-3 rounded-xl hover:bg-primary/8 hover:text-primary transition-all" href="itinerary.html">
+      <span class="material-symbols-outlined text-xl">event_note</span><span class="text-sm">Itinerary</span>
+    </a>
+    <a class="flex items-center gap-3 text-on-surface-variant px-5 py-3 rounded-xl hover:bg-primary/8 hover:text-primary transition-all" href="friends.html">
+      <span class="material-symbols-outlined text-xl">group</span><span class="text-sm">Friends</span>
+    </a>
+    <a class="flex items-center gap-3 text-on-surface-variant px-5 py-3 rounded-xl hover:bg-primary/8 hover:text-primary transition-all" href="budget.html">
+      <span class="material-symbols-outlined text-xl">payments</span><span class="text-sm">Budget</span>
+    </a>
+    <a class="flex items-center gap-3 text-on-surface-variant px-5 py-3 rounded-xl hover:bg-primary/8 hover:text-primary transition-all" href="packing.html">
+      <span class="material-symbols-outlined text-xl">inventory_2</span><span class="text-sm">Packing List</span>
+    </a>
+    <a class="flex items-center gap-3 text-on-surface-variant px-5 py-3 rounded-xl hover:bg-primary/8 hover:text-primary transition-all" href="notes.html">
+      <span class="material-symbols-outlined text-xl">description</span><span class="text-sm">Notes</span>
+    </a>
+    <a class="flex items-center gap-3 text-on-surface-variant px-5 py-3 rounded-xl hover:bg-primary/8 hover:text-primary transition-all" href="shared.html">
+      <span class="material-symbols-outlined text-xl">share</span><span class="text-sm">Shared Trip</span>
+    </a>
+  </nav>
+  <div class="px-5 mt-auto">
+    <button onclick="window.location.href='route-planner.html'"
+      class="w-full py-3 px-5 rounded-xl bg-primary text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 active:scale-[0.97]">
+      <span class="material-symbols-outlined text-base">add_circle</span> Plan New Trip
     </button>
+    <div class="mt-5 flex items-center gap-3 px-1">
+      <div class="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onclick="openProfileModal()">
+        <div id="sidebar-avatar-wrap" class="w-10 h-10 rounded-full ring-2 ring-primary-container bg-primary flex items-center justify-center text-white font-bold text-sm overflow-hidden">?</div>
+        <div>
+          <p id="sidebar-name" class="text-sm font-bold text-on-surface">Loading…</p>
+          <p class="text-[11px] text-on-surface-variant">India Explorer 🇮🇳</p>
+        </div>
+      </div>
+      <button onclick="handleLogout()" class="ml-auto w-8 h-8 flex items-center justify-center text-primary/40 hover:bg-primary/10 rounded-full transition-all" title="Logout">
+        <span class="material-symbols-outlined text-base">logout</span>
+      </button>
+    </div>
+  </div>
+</aside>
+
+<!-- TOPBAR -->
+<header class="fixed top-0 right-0 w-[calc(100%-272px)] h-16 px-10 bg-white/20 backdrop-blur-md flex justify-between items-center z-40 border-b border-white/30">
+  <div class="flex items-center gap-3">
+    <h2 class="font-display font-bold text-primary text-base tracking-tight">Incredible India — Your Trips</h2>
+    <span class="px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container text-[10px] font-bold tracking-wide">LIVE</span>
+  </div>
+  <div class="flex items-center gap-4">
+    <div class="relative hidden lg:block">
+      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+      <input class="pl-9 pr-4 py-2 bg-white/60 border border-white/40 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 w-52" placeholder="Search India…" type="text"/>
+    </div>
+    <button class="p-2 text-on-surface-variant hover:text-primary transition-colors relative">
+      <span class="material-symbols-outlined">notifications</span>
+      <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full"></span>
+    </button>
+    <div id="topbar-avatar-wrap" onclick="openProfileModal()" class="w-9 h-9 rounded-full ring-2 ring-white/60 cursor-pointer bg-primary flex items-center justify-center text-white font-bold text-sm overflow-hidden">?</div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="ml-[272px] min-h-screen pt-24 px-10 pb-16 max-w-[1200px]">
+
+  <!-- Welcome -->
+  <section class="mb-9 flex flex-col lg:flex-row lg:items-center justify-between gap-5 fade-up">
+    <div>
+      <h1 id="welcome-msg" class="font-display text-4xl font-extrabold text-on-surface tracking-tight">Welcome back! 👋</h1>
+      <p class="text-on-surface-variant mt-2 text-base">Ready for your next adventure across India?</p>
+    </div>
+    <div class="glass-card p-4 rounded-3xl border-primary/20 flex items-center gap-4 bg-gradient-to-br from-primary/5 to-secondary/5 min-w-[280px]">
+      <span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings:'FILL' 1">explore</span>
+      <div>
+        <p class="text-[10px] font-bold text-primary uppercase tracking-widest">Featured Route</p>
+        <p class="text-sm font-bold">Golden Triangle + Kerala Backwaters</p>
+        <p class="text-[11px] text-on-surface-variant mt-0.5">14 days · ₹95,000 est.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Stats -->
+  <div class="grid grid-cols-4 gap-4 mb-9 fade-up-2">
+    <div class="glass-card rounded-2xl p-5 flex items-center gap-4">
+      <div class="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
+        <span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings:'FILL' 1">luggage</span>
+      </div>
+      <div><p id="stat-trips" class="text-2xl font-extrabold text-on-surface">—</p><p class="text-xs text-on-surface-variant">My Trips</p></div>
+    </div>
+    <div class="glass-card rounded-2xl p-5 flex items-center gap-4">
+      <div class="w-11 h-11 rounded-xl bg-secondary/10 flex items-center justify-center">
+        <span class="material-symbols-outlined text-secondary text-xl" style="font-variation-settings:'FILL' 1">location_on</span>
+      </div>
+      <div><p id="stat-cities" class="text-2xl font-extrabold text-on-surface">—</p><p class="text-xs text-on-surface-variant">Cities</p></div>
+    </div>
+    <div class="glass-card rounded-2xl p-5 flex items-center gap-4">
+      <div class="w-11 h-11 rounded-xl bg-tertiary/10 flex items-center justify-center">
+        <span class="material-symbols-outlined text-tertiary text-xl" style="font-variation-settings:'FILL' 1">photo_library</span>
+      </div>
+      <div><p id="stat-photos" class="text-2xl font-extrabold text-on-surface">—</p><p class="text-xs text-on-surface-variant">Photos</p></div>
+    </div>
+    <div class="glass-card rounded-2xl p-5 flex items-center gap-4">
+      <div class="w-11 h-11 rounded-xl bg-error/10 flex items-center justify-center">
+        <span class="material-symbols-outlined text-error text-xl" style="font-variation-settings:'FILL' 1">account_balance_wallet</span>
+      </div>
+      <div><p id="stat-budget" class="text-2xl font-extrabold text-on-surface">—</p><p class="text-xs text-on-surface-variant">Budget</p></div>
+    </div>
   </div>
 
-  <script>
-    // ── SUPABASE INIT ──────────────────────────────────────────
-    const SUPABASE_URL = 'https://lpuiwcvobxsfrzokmqbc.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxwdWl3Y3ZvYnhzZnJ6b2ttcWJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0NjcxNTUsImV4cCI6MjA5NDA0MzE1NX0.jfMj2IgEEEk_A0AB4IEUgsExHkTovHRycnFZIKW5774';
-    const { createClient } = supabase;
-    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  <!-- ══ SMART PLANNER ══ -->
+  <section class="mb-9 glass-card p-8 rounded-[2.5rem] border-primary/15 relative overflow-hidden fade-up-3">
+    <div class="absolute top-0 right-0 p-8 opacity-[0.07]">
+      <span class="material-symbols-outlined text-[120px] text-primary">map</span>
+    </div>
+    <div class="relative z-10">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20">
+          <span class="material-symbols-outlined text-base">route</span>
+        </div>
+        <div>
+          <h3 class="text-xl font-extrabold text-on-surface">Trip Planner</h3>
+          <p class="text-xs text-on-surface-variant">Enter your budget and duration — we'll build your itinerary.</p>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-7">
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest ml-2">Destination</label>
+          <select id="plan-dest" class="w-full bg-white/60 border-white/50 rounded-2xl py-3 px-4 text-sm focus:ring-primary/25 outline-none font-medium">
+            <option value="Agra">Agra — Mughal Capital</option>
+            <option value="Jaipur">Jaipur — Pink City</option>
+            <option value="Munnar">Munnar — Tea Country</option>
+            <option value="Ooty">Ooty — Queen of Hills</option>
+            <option value="Varanasi">Varanasi — Sacred City</option>
+            <option value="Hampi">Hampi — Stone Empire</option>
+            <option value="Coorg">Coorg — Scotland of India</option>
+            <option value="Rishikesh">Rishikesh — Adventure Hub</option>
+            <option value="Udaipur">Udaipur — City of Lakes</option>
+            <option value="Andaman">Andaman — Island Paradise</option>
+          </select>
+        </div>
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest ml-2">Budget (₹)</label>
+          <input id="plan-budget" type="number" placeholder="e.g. 35,000"
+            class="w-full bg-white/60 border-white/50 rounded-2xl py-3 px-4 text-sm focus:ring-primary/25 outline-none"/>
+        </div>
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest ml-2">Days</label>
+          <input id="plan-days" type="number" placeholder="e.g. 5"
+            class="w-full bg-white/60 border-white/50 rounded-2xl py-3 px-4 text-sm focus:ring-primary/25 outline-none"/>
+        </div>
+        <div class="flex items-end">
+          <button onclick="generatePlan()"
+            class="w-full bg-primary text-white font-bold py-3 px-6 rounded-2xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 active:scale-95 flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined text-base">explore</span> Plan My Trip
+          </button>
+        </div>
+      </div>
+      <div id="plan-output" class="hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div id="plan-sidebar" class="space-y-4"></div>
+          <div id="plan-timeline" class="lg:col-span-2 space-y-4"></div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-    let currentUser = null;
+  <!-- ══ INSPIRATION TRIPS — India ══ -->
+  <section class="mb-10 fade-up-4">
+    <div class="flex items-center justify-between mb-5">
+      <div>
+        <h3 class="text-xl font-extrabold text-on-surface">Discover India</h3>
+        <p class="text-xs text-on-surface-variant mt-0.5">10 handpicked journeys across the subcontinent</p>
+      </div>
+      <button onclick="openAddTripModal()" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-all active:scale-95 shadow-md shadow-primary/20">
+        <span class="material-symbols-outlined text-base">add_circle</span> Add My Trip
+      </button>
+    </div>
 
-    // ── LOAD USER & INIT PAGE ─────────────────────────────────
-    async function initDashboard() {
-      const { data: { session } } = await sb.auth.getSession();
-
-      if (!session) {
-        // Not logged in — redirect to login
-        window.location.href = 'login.html';
-        return;
-      }
-
-      currentUser = session.user;
-      const name = currentUser.user_metadata?.full_name
-        || currentUser.email?.split('@')[0]
-        || 'Explorer';
-      const email = currentUser.email || 'N/A';
-      const initials = name.charAt(0).toUpperCase();
-      const joined = new Date(currentUser.created_at).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
-
-      // Update sidebar
-      document.getElementById('sidebar-name').textContent = name;
-      document.getElementById('sidebar-avatar').textContent = initials;
-
-      // Update topbar avatar
-      document.getElementById('topbar-avatar').textContent = initials;
-
-      // Update welcome message
-      document.getElementById('welcome-msg').textContent = `Welcome back, ${name}! 👋`;
-
-      // Pre-fill modal fields
-      document.getElementById('modal-avatar').textContent = initials;
-      document.getElementById('modal-name').textContent = name;
-      document.getElementById('modal-email').textContent = email;
-      document.getElementById('modal-userid').textContent = currentUser.id;
-      document.getElementById('modal-joined').textContent = joined;
-
-      // Load saved trips from Supabase
-      loadSavedTrips();
-    }
-
-    // ── LOAD SAVED TRIPS FROM SUPABASE ────────────────────────
-    async function loadSavedTrips() {
-      if (!currentUser) return;
-
-      const { data: trips, error } = await sb
-        .from('trips')
-        .select('*')
-        .eq('user_id', currentUser.id)
-        .order('created_at', { ascending: false });
-
-      const section = document.getElementById('saved-trips-section');
-      const grid = document.getElementById('saved-trips-grid');
-
-      if (error || !trips || trips.length === 0) {
-        section.style.display = 'none';
-        return;
-      }
-
-      section.style.display = 'block';
-      const images = [
-        'https://images.unsplash.com/photo-1564507592333-c60657eea523?w=600&h=400&fit=crop',
-        'https://images.unsplash.com/photo-1609766934234-1e59184dde0e?w=600&h=400&fit=crop',
-        'https://images.unsplash.com/photo-1477587458883-47145ed94245?w=600&h=400&fit=crop',
-        'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=600&h=400&fit=crop',
-        'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop',
-      ];
-
-      grid.innerHTML = trips.map((trip, i) => `
-        <div class="trip-card group relative h-[280px] rounded-3xl overflow-hidden glass-card shadow-md cursor-pointer border border-primary/10">
-          <img class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-80"
-            src="${images[i % images.length]}" alt="${trip.title}"/>
-          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-          <div class="absolute top-4 right-4 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-white text-[10px] font-bold">SAVED</div>
-          <div class="absolute bottom-0 left-0 w-full p-6">
-            <h4 class="text-xl font-bold text-white">${trip.title}</h4>
-            <div class="flex items-center justify-between mt-2">
-              <p class="text-white/70 text-sm flex items-center gap-1">
-                <span class="material-symbols-outlined text-sm">location_on</span> ${trip.destination || 'Unknown'}
-              </p>
-              <p class="text-white/60 text-xs">${trip.start_date || ''} ${trip.end_date ? '→ ' + trip.end_date : ''}</p>
-            </div>
+    <!-- Featured row 1 -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
+      <!-- BIG CARD -->
+      <div class="md:col-span-2 trip-card group relative h-[380px] rounded-3xl overflow-hidden glass-card shadow-lg cursor-pointer" onclick="openTripModal('goldenTriangle')">
+        <img class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+          src="https://images.unsplash.com/photo-1564507592333-c60657eea523?w=900&h=600&fit=crop" alt="Taj Mahal"/>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent"></div>
+        <div class="absolute top-4 left-4"><span class="px-3 py-1 rounded-full bg-primary-container text-white text-[10px] font-bold uppercase tracking-wide">Upcoming</span></div>
+        <div class="absolute bottom-0 left-0 w-full p-7">
+          <h4 class="text-2xl font-extrabold text-white font-display">The Golden Triangle</h4>
+          <div class="flex items-center gap-4 text-white/75 mt-1.5 text-sm">
+            <span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">calendar_today</span> Oct 12 – Oct 24</span>
+            <span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">location_on</span> Agra · Jaipur · Delhi</span>
+          </div>
+          <div class="flex gap-2 mt-3">
+            <span class="px-2 py-0.5 rounded-full bg-white/15 text-white text-[10px] font-semibold">12 Days</span>
+            <span class="px-2 py-0.5 rounded-full bg-white/15 text-white text-[10px] font-semibold">₹1,45,000</span>
+            <span class="px-2 py-0.5 rounded-full bg-white/15 text-white text-[10px] font-semibold">Heritage</span>
           </div>
         </div>
-      `).join('');
-    }
-
-    // ── LOGOUT ────────────────────────────────────────────────
-    async function handleLogout() {
-      await sb.auth.signOut();
-      localStorage.removeItem('traveloop_user');
-      window.location.href = 'login.html';
-    }
-
-    // ── PROFILE MODAL ─────────────────────────────────────────
-    function openProfileModal() {
-      document.getElementById('profileModal').classList.remove('hidden');
-    }
-    function closeProfileModal() {
-      document.getElementById('profileModal').classList.add('hidden');
-    }
-
-    // ── TRIP MODAL ────────────────────────────────────────────
-    const tripsData = {
-      goldenTriangle: {
-        title: "The Golden Triangle", dates: "Oct 12 – Oct 24, 2025 (12 days)",
-        status: "UPCOMING", statusColor: "bg-primary-container text-white",
-        heroImg: "https://images.unsplash.com/photo-1564507592333-c60657eea523?w=800&h=400&fit=crop",
-        budget: "₹1,45,000",
-        places: [
-          { city: "Agra", emoji: "🏛️", days: "Day 1–3", items: ["Taj Mahal — Best at sunrise", "Agra Fort — UNESCO Mughal fortress", "Fatehpur Sikri — Ancient ghost city", "Itmad-ud-Daulah — Baby Taj", "Mehtab Bagh — Moonlight views"] },
-          { city: "Jaipur", emoji: "🎨", days: "Day 4–8", items: ["Amber Fort — Elephant rides & Sheesh Mahal", "Hawa Mahal — Palace of Winds", "City Palace — Rajasthani-Mughal blend", "Jantar Mantar — World's largest sundial", "Jal Mahal — Water Palace"] },
-          { city: "Delhi", emoji: "🕌", days: "Day 9–12", items: ["Red Fort — Symbol of independence", "India Gate — War memorial", "Chandni Chowk — Street food & bazaars", "Humayun's Tomb — Mughal architecture", "Qutub Minar — 73m victory tower"] }
-        ]
-      },
-      munnarTea: {
-        title: "Munnar Tea Trails", dates: "Sep 10 – Sep 18, 2025 (8 days)",
-        status: "ACTIVE", statusColor: "bg-secondary-container text-on-secondary-container",
-        heroImg: "https://images.unsplash.com/photo-1609766934234-1e59184dde0e?w=800&h=400&fit=crop",
-        budget: "₹65,000",
-        places: [
-          { city: "Munnar", emoji: "🌿", days: "Day 1–5", items: ["Eravikulam National Park — Nilgiri Tahr", "Mattupetty Dam — Boat rides & elephants", "Tea Museum — History of Nilgiri tea", "Kolukkumalai Tea Estate — World's highest", "Attukal Waterfalls — Jungle scenery"] },
-          { city: "Ooty", emoji: "🚂", days: "Day 6–8", items: ["Nilgiri Mountain Railway — UNESCO toy train", "Botanical Gardens — 55 acres", "Ooty Lake — Boating", "Doddabetta Peak — Highest Nilgiri point", "Rose Garden — 20,000+ varieties"] }
-        ]
-      },
-      jaipurCity: {
-        title: "Jaipur Pink City", dates: "Nov 5 – Nov 12, 2025 (7 days)",
-        status: "UPCOMING", statusColor: "bg-tertiary-container text-on-tertiary-container",
-        heroImg: "https://images.unsplash.com/photo-1477587458883-47145ed94245?w=800&h=400&fit=crop",
-        budget: "₹55,000",
-        places: [
-          { city: "Jaipur", emoji: "🌸", days: "All 7 Days", items: ["Amber Fort — Elephant rides", "Hawa Mahal — Palace of Winds", "City Palace Museum", "Jantar Mantar Observatory", "Jal Mahal — Sunset views", "Nahargarh Fort", "Johri Bazaar — Shopping"] }
-        ]
-      },
-      goaBeach: {
-        title: "Goa Coastal Escape", dates: "Dec 20 – Dec 28, 2025 (8 days)",
-        status: "UPCOMING", statusColor: "bg-primary-container text-white",
-        heroImg: "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=800&h=400&fit=crop",
-        budget: "₹80,000",
-        places: [
-          { city: "North Goa", emoji: "🏖️", days: "Day 1–4", items: ["Calangute & Baga Beach", "Anjuna Beach — Wednesday flea market", "Aguada Fort — Portuguese fort", "Tito's Lane — Nightlife"] },
-          { city: "South Goa", emoji: "🌴", days: "Day 5–6", items: ["Palolem Beach — Kayaking", "Colva Beach — Peaceful", "Dudhsagar Waterfalls — Jeep safari"] },
-          { city: "Panjim", emoji: "⛪", days: "Day 7–8", items: ["Fontainhas Latin Quarter", "Old Goa Churches", "Goa State Museum", "Mandovi River Cruise"] }
-        ]
-      },
-      ootyHills: {
-        title: "Ooty Queen of Hills", dates: "Jan 3 – Jan 10, 2026 (7 days)",
-        status: "UPCOMING", statusColor: "bg-secondary-container text-on-secondary-container",
-        heroImg: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop",
-        budget: "₹45,000",
-        places: [
-          { city: "Ooty", emoji: "🏔️", days: "All 7 Days", items: ["Nilgiri Mountain Railway 🚂", "Doddabetta Peak", "Botanical Gardens", "Ooty Lake", "Pykara Lake & Waterfalls", "Rose Garden", "Tea Factory Tour"] }
-        ]
-      }
-    };
-
-    function openTripModal(key) {
-      const trip = tripsData[key];
-      if (!trip) return;
-      document.getElementById('tripModalTitle').textContent = trip.title;
-      document.getElementById('tripModalDates').textContent = trip.dates + '  ·  Budget: ' + trip.budget;
-      document.getElementById('tripModalBadge').className = 'inline-block px-3 py-1 rounded-full text-xs font-bold mb-2 ' + trip.statusColor;
-      document.getElementById('tripModalBadge').textContent = trip.status;
-      const hero = document.getElementById('tripModalHero');
-      hero.style.backgroundImage = `url('${trip.heroImg}')`;
-      hero.style.backgroundSize = 'cover';
-      hero.style.backgroundPosition = 'center';
-      let html = '';
-      trip.places.forEach((place, i) => {
-        const colors = ['border-primary', 'border-secondary', 'border-tertiary'];
-        html += `<div class="border-l-4 ${colors[i % 3]} pl-4 py-1">
-          <div class="flex items-center gap-2 mb-3">
-            <span class="text-xl">${place.emoji}</span>
-            <h4 class="text-lg font-bold text-on-surface">${place.city}</h4>
-            <span class="ml-auto text-xs px-2 py-1 bg-surface-container rounded-full text-on-surface-variant">${place.days}</span>
-          </div>
-          <ul class="space-y-2">`;
-        place.items.forEach(item => {
-          html += `<li class="flex gap-2 text-sm text-on-surface-variant"><span class="text-primary mt-0.5 flex-shrink-0">▸</span><span>${item}</span></li>`;
-        });
-        html += `</ul></div>`;
-      });
-      document.getElementById('tripModalContent').innerHTML = html;
-      document.getElementById('tripModal').classList.remove('hidden');
-    }
-    function closeTripModal() { document.getElementById('tripModal').classList.add('hidden'); }
-
-    // ── CHAT ──────────────────────────────────────────────────
-    function toggleChat() {
-      const chatWin = document.getElementById('chat-window');
-      const icon = document.getElementById('chat-icon');
-      const isHidden = chatWin.classList.contains('hidden');
-      if (isHidden) {
-        chatWin.classList.remove('hidden');
-        setTimeout(() => { chatWin.classList.remove('scale-95', 'opacity-0'); chatWin.classList.add('scale-100', 'opacity-100'); }, 10);
-        icon.textContent = 'close';
-      } else {
-        chatWin.classList.remove('scale-100', 'opacity-100');
-        chatWin.classList.add('scale-95', 'opacity-0');
-        setTimeout(() => { chatWin.classList.add('hidden'); }, 300);
-        icon.textContent = 'chat';
-      }
-    }
-
-    // ── AI PLANNER ────────────────────────────────────────────
-    const destData = {
-      "Agra": { spots: [{ name: "Taj Mahal", desc: "White marble mausoleum; best at sunrise." }, { name: "Agra Fort", desc: "UNESCO red sandstone fortress." }, { name: "Fatehpur Sikri", desc: "Ancient ghost city." }, { name: "Itmad-ud-Daulah", desc: "Baby Taj, first all-marble Mughal structure." }, { name: "Mehtab Bagh", desc: "Moonlight views of the Taj." }], hotels: { economy: { name: "The Hosteller Agra", price: "₹1,200", stars: 2 }, comfort: { name: "Radisson Hotel Agra", price: "₹6,500", stars: 4 }, luxury: { name: "The Oberoi Amarvilas", price: "₹45,000", stars: 5 } } },
-      "Jaipur": { spots: [{ name: "Amber Fort", desc: "Hilltop fort with Sheesh Mahal." }, { name: "Hawa Mahal", desc: "Palace of Winds." }, { name: "City Palace", desc: "Rajasthani-Mughal architecture." }, { name: "Jantar Mantar", desc: "World's largest stone sundial." }, { name: "Jal Mahal", desc: "Water Palace in Man Sagar Lake." }, { name: "Nahargarh Fort", desc: "Panoramic sunset views." }], hotels: { economy: { name: "Zostel Jaipur", price: "₹1,000", stars: 2 }, comfort: { name: "ITC Rajputana", price: "₹12,000", stars: 5 }, luxury: { name: "Rambagh Palace", price: "₹75,000", stars: 5 } } },
-      "Munnar": { spots: [{ name: "Eravikulam National Park", desc: "Home to Nilgiri Tahr." }, { name: "Mattupetty Dam", desc: "Lake, boat rides, wild elephants." }, { name: "Tea Museum", desc: "Nilgiri tea history." }, { name: "Kolukkumalai Tea Estate", desc: "World's highest tea plantation." }, { name: "Attukal Waterfalls", desc: "Lush jungle scenery." }], hotels: { economy: { name: "Munnar Inn", price: "₹1,500", stars: 2 }, comfort: { name: "The Fog Munnar", price: "₹8,000", stars: 4 }, luxury: { name: "Blanket Hotel & Spa", price: "₹18,000", stars: 5 } } },
-      "Ooty": { spots: [{ name: "Nilgiri Mountain Railway", desc: "UNESCO Toy Train." }, { name: "Botanical Gardens", desc: "55 acres, prehistoric tree." }, { name: "Ooty Lake", desc: "Popular for boating." }, { name: "Doddabetta Peak", desc: "Highest Nilgiri point." }, { name: "Pykara Waterfalls", desc: "Picnic and speedboats." }, { name: "Rose Garden", desc: "20,000 varieties." }], hotels: { economy: { name: "Reflections Guesthouse", price: "₹1,200", stars: 2 }, comfort: { name: "Sterling Ooty Fern Hill", price: "₹7,500", stars: 4 }, luxury: { name: "Savoy Ooty - IHCL SeleQtions", price: "₹22,000", stars: 5 } } }
-    };
-
-    function generateAIPlan() {
-      const dest = document.getElementById('plan-dest').value;
-      const budget = parseFloat(document.getElementById('plan-budget').value);
-      const days = parseInt(document.getElementById('plan-days').value);
-      if (!budget || !days) { alert("Please enter both budget and number of days! 💰"); return; }
-      const data = destData[dest];
-      let tier = 'economy';
-      if (budget / days > 15000) tier = 'luxury';
-      else if (budget / days > 4000) tier = 'comfort';
-      const hotel = data.hotels[tier];
-      document.getElementById('ai-plan-sidebar').innerHTML = `
-        <div class="bg-primary/5 p-6 rounded-3xl border border-primary/10">
-          <h4 class="text-xs font-bold text-primary uppercase tracking-widest mb-4">Recommended Stay</h4>
-          <div class="flex items-center gap-4 mb-4">
-            <div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-primary shadow-sm"><span class="material-symbols-outlined">hotel</span></div>
-            <div><p class="font-bold text-on-surface">${hotel.name}</p><p class="text-xs text-on-surface-variant">${"★".repeat(hotel.stars)} · ${tier.toUpperCase()}</p></div>
-          </div>
-          <div class="flex justify-between items-center py-3 border-t border-primary/10">
-            <span class="text-xs text-on-surface-variant">Est. Nightly Rate</span>
-            <span class="font-bold text-secondary">${hotel.price}</span>
-          </div>
-          <div class="pt-4">
-            <p class="text-[10px] font-bold text-on-surface-variant uppercase mb-2">Budget Analysis</p>
-            <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-              <div class="bg-primary h-full" style="width:${tier === 'luxury' ? '90%' : tier === 'comfort' ? '60%' : '30%'}"></div>
-            </div>
-            <p class="text-[10px] text-on-surface-variant mt-1 text-center">Optimized for ${tier} tier</p>
+      </div>
+      <div class="trip-card group relative h-[380px] rounded-3xl overflow-hidden glass-card shadow-lg cursor-pointer" onclick="openTripModal('keralaBackwaters')">
+        <img class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+          src="https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=600&h=500&fit=crop" alt="Kerala Backwaters"/>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent"></div>
+        <div class="absolute top-4 left-4"><span class="px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container text-[10px] font-bold uppercase">Active</span></div>
+        <div class="absolute bottom-0 left-0 w-full p-6">
+          <h4 class="text-xl font-extrabold text-white font-display">Kerala Backwaters</h4>
+          <p class="text-white/70 text-sm mt-1">Sep 5 – Sep 13 · Alleppey & Kumarakom</p>
+          <div class="flex gap-2 mt-2">
+            <span class="px-2 py-0.5 rounded-full bg-white/15 text-white text-[10px] font-semibold">8 Days</span>
+            <span class="px-2 py-0.5 rounded-full bg-white/15 text-white text-[10px] font-semibold">Houseboat</span>
           </div>
         </div>
-        <div class="bg-secondary/5 p-6 rounded-3xl border border-secondary/10">
-          <h4 class="text-xs font-bold text-secondary uppercase tracking-widest mb-2">AI Traveler Insight</h4>
-          <p class="text-xs leading-relaxed text-on-surface-variant">For a ${days}-day trip to ${dest}, we focused on the top ${Math.min(data.spots.length, days * 2)} must-visit spots. Staying at <strong>${hotel.name}</strong> keeps you central and matches your ₹${budget.toLocaleString()} budget.</p>
-        </div>`;
-      let timelineHTML = `<h4 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-4 ml-2">Day-by-Day Itinerary</h4>`;
-      for (let i = 1; i <= days; i++) {
-        const s1 = data.spots[(i - 1) * 2 % data.spots.length];
-        const s2 = data.spots[((i - 1) * 2 + 1) % data.spots.length];
-        timelineHTML += `<div class="flex gap-4"><div class="flex flex-col items-center"><div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold shrink-0">0${i}</div><div class="w-0.5 flex-1 bg-primary/20 my-1"></div></div><div class="flex-1 pb-6"><h5 class="font-bold text-on-surface mb-3">Day ${i}: ${i === 1 ? 'Arrival & Heritage' : 'Deep Exploration'}</h5><div class="grid grid-cols-1 md:grid-cols-2 gap-3"><div class="glass-card p-4 rounded-2xl bg-white/40"><p class="text-[10px] font-bold text-primary uppercase mb-1">Morning</p><p class="font-bold text-sm">${s1.name}</p><p class="text-xs text-on-surface-variant mt-1">${s1.desc}</p></div><div class="glass-card p-4 rounded-2xl bg-white/40"><p class="text-[10px] font-bold text-secondary uppercase mb-1">Afternoon</p><p class="font-bold text-sm">${s2.name}</p><p class="text-xs text-on-surface-variant mt-1">${s2.desc}</p></div></div></div></div>`;
-      }
-      document.getElementById('ai-plan-timeline').innerHTML = timelineHTML;
-      document.getElementById('ai-plan-output').classList.remove('hidden');
-      document.getElementById('ai-plan-output').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+      </div>
+    </div>
 
-    // ── ESC TO CLOSE ──────────────────────────────────────────
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Escape') { closeProfileModal(); closeTripModal(); }
-    });
+    <!-- Row 2 — scrollable on mobile, grid on desktop -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
+      <div class="trip-card group relative h-[260px] rounded-2xl overflow-hidden glass-card shadow cursor-pointer" onclick="openTripModal('varanasi')">
+        <img class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+          src="https://images.unsplash.com/photo-1561361513-2d000a50f0dc?w=600&h=400&fit=crop" alt="Varanasi"/>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/65 to-transparent"></div>
+        <div class="absolute bottom-0 left-0 w-full p-5">
+          <h4 class="text-base font-bold text-white">Varanasi & Sarnath</h4>
+          <p class="text-white/65 text-xs mt-0.5">Nov 1 – Nov 7 · Spiritual Circuit</p>
+        </div>
+      </div>
+      <div class="trip-card group relative h-[260px] rounded-2xl overflow-hidden glass-card shadow cursor-pointer" onclick="openTripModal('hampi')">
+        <img class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+          src="https://images.unsplash.com/photo-1599661046289-e31897846e41?w=600&h=400&fit=crop" alt="Hampi"/>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/65 to-transparent"></div>
+        <div class="absolute bottom-0 left-0 w-full p-5">
+          <h4 class="text-base font-bold text-white">Hampi Ruins</h4>
+          <p class="text-white/65 text-xs mt-0.5">Dec 10 – Dec 15 · Vijayanagara Empire</p>
+        </div>
+      </div>
+      <div class="trip-card group relative h-[260px] rounded-2xl overflow-hidden glass-card shadow cursor-pointer" onclick="openTripModal('coorg')">
+        <img class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+          src="https://images.unsplash.com/photo-1588083949404-c4f1ed1323b3?w=600&h=400&fit=crop" alt="Coorg"/>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/65 to-transparent"></div>
+        <div class="absolute bottom-0 left-0 w-full p-5">
+          <h4 class="text-base font-bold text-white">Coorg Coffee Country</h4>
+          <p class="text-white/65 text-xs mt-0.5">Jan 8 – Jan 13 · Misty Hills</p>
+        </div>
+      </div>
+      <div class="trip-card group relative h-[260px] rounded-2xl overflow-hidden glass-card shadow cursor-pointer" onclick="openTripModal('rishikesh')">
+        <img class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+          src="https://images.unsplash.com/photo-1544552866-d3ed42536cfd?w=600&h=400&fit=crop" alt="Rishikesh"/>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/65 to-transparent"></div>
+        <div class="absolute bottom-0 left-0 w-full p-5">
+          <h4 class="text-base font-bold text-white">Rishikesh Adventures</h4>
+          <p class="text-white/65 text-xs mt-0.5">Feb 14 – Feb 20 · River & Mountains</p>
+        </div>
+      </div>
+    </div>
 
-    // ── INIT ──────────────────────────────────────────────────
-    initDashboard();
-  </script>
+    <!-- Row 3 -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+      <div class="trip-card group relative h-[220px] rounded-2xl overflow-hidden glass-card shadow cursor-pointer" onclick="openTripModal('udaipur')">
+        <img class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+          src="https://images.unsplash.com/photo-1599661046289-e31897846e41?w=600&h=350&fit=crop&crop=center" alt="Udaipur"/>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+        <div class="absolute bottom-0 left-0 w-full p-5">
+          <h4 class="text-base font-bold text-white">Udaipur City of Lakes</h4>
+          <p class="text-white/65 text-xs mt-0.5">Mar 5 – Mar 11 · Palaces & Lakes</p>
+        </div>
+      </div>
+      <div class="trip-card group relative h-[220px] rounded-2xl overflow-hidden glass-card shadow cursor-pointer" onclick="openTripModal('andaman')">
+        <img class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+          src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&h=350&fit=crop" alt="Andaman"/>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+        <div class="absolute bottom-0 left-0 w-full p-5">
+          <h4 class="text-base font-bold text-white">Andaman Islands</h4>
+          <p class="text-white/65 text-xs mt-0.5">Apr 1 – Apr 9 · Beach & Coral</p>
+        </div>
+      </div>
+      <div class="trip-card group relative h-[220px] rounded-2xl overflow-hidden glass-card shadow cursor-pointer" onclick="openTripModal('munnarTea')">
+        <img class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+          src="https://images.unsplash.com/photo-1609766934234-1e59184dde0e?w=600&h=350&fit=crop" alt="Munnar"/>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+        <div class="absolute bottom-0 left-0 w-full p-5">
+          <h4 class="text-base font-bold text-white">Munnar Tea Trails</h4>
+          <p class="text-white/65 text-xs mt-0.5">May 3 – May 10 · Western Ghats</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ MY SAVED TRIPS ══ -->
+  <section id="saved-trips-section" class="mb-10" style="display:none">
+    <div class="flex items-center justify-between mb-5">
+      <div>
+        <h3 class="text-xl font-extrabold text-on-surface">My Trips 📂</h3>
+        <p class="text-xs text-on-surface-variant mt-0.5">Tap any trip to view details and add photos</p>
+      </div>
+    </div>
+    <div id="saved-trips-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+  </section>
+
+  <!-- ══ BOTTOM ROW ══ -->
+  <section class="grid grid-cols-1 lg:grid-cols-4 gap-5">
+    <div class="lg:col-span-1 glass-card p-6 rounded-3xl">
+      <div class="flex items-center justify-between mb-4">
+        <h5 class="font-bold text-on-surface text-sm">Trip Budget</h5>
+        <span class="material-symbols-outlined text-primary" style="font-variation-settings:'FILL' 1">account_balance_wallet</span>
+      </div>
+      <div class="relative w-24 h-24 mx-auto mb-3">
+        <svg class="w-full h-full -rotate-90">
+          <circle cx="48" cy="48" r="42" fill="transparent" stroke="#dde3e9" stroke-width="9"/>
+          <circle cx="48" cy="48" r="42" fill="transparent" stroke="#005f8f" stroke-width="9" stroke-dasharray="264" stroke-dashoffset="74"/>
+        </svg>
+        <div class="absolute inset-0 flex flex-col items-center justify-center">
+          <span class="font-extrabold text-sm">₹3.1L</span>
+          <span class="text-[9px] text-on-surface-variant">Spent</span>
+        </div>
+      </div>
+      <p class="text-center text-xs text-on-surface-variant">72% of Golden Triangle budget</p>
+      <a href="budget.html" class="mt-4 block text-center text-xs text-primary font-bold hover:underline">View Full Budget →</a>
+    </div>
+    <div class="lg:col-span-2 glass-card p-6 rounded-3xl">
+      <h5 class="font-bold text-on-surface text-sm mb-4">Today's Schedule — Agra</h5>
+      <div class="relative pl-10 space-y-4">
+        <div class="absolute left-4 top-2 bottom-2 w-0.5 border-l-2 border-dashed border-primary/25"></div>
+        <div class="relative flex items-center gap-3">
+          <div class="absolute -left-[26px] w-5 h-5 rounded-full bg-secondary flex items-center justify-center">
+            <span class="material-symbols-outlined text-white text-xs">check</span>
+          </div>
+          <div class="flex-1 py-2 px-4 glass-card rounded-xl">
+            <p class="text-sm font-semibold">Sunrise at Taj Mahal</p>
+            <p class="text-xs text-on-surface-variant">06:00 AM · Completed ✅</p>
+          </div>
+        </div>
+        <div class="relative flex items-center gap-3">
+          <div class="absolute -left-[26px] w-5 h-5 rounded-full bg-white border-2 border-primary flex items-center justify-center">
+            <div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+          </div>
+          <div class="flex-1 py-2 px-4 glass-card rounded-xl border-primary/30 bg-primary/5">
+            <p class="text-sm font-semibold text-primary">Agra Fort Tour</p>
+            <p class="text-xs text-primary">10:30 AM · In progress 🏛️</p>
+          </div>
+        </div>
+        <div class="relative flex items-center gap-3 opacity-50">
+          <div class="absolute -left-[26px] w-5 h-5 rounded-full bg-white border-2 border-outline-variant"></div>
+          <div class="flex-1 py-2 px-4 glass-card rounded-xl">
+            <p class="text-sm font-semibold">Fatehpur Sikri</p>
+            <p class="text-xs text-on-surface-variant">02:00 PM · Upcoming</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="lg:col-span-1 flex flex-col gap-4">
+      <div class="glass-card p-5 rounded-3xl bg-primary/5 border-primary/15">
+        <div class="flex items-center justify-between mb-1">
+          <span class="material-symbols-outlined text-primary text-2xl" style="font-variation-settings:'FILL' 1">wb_sunny</span>
+          <span class="text-2xl font-extrabold">32°C</span>
+        </div>
+        <p class="font-bold text-sm">Sunny in Agra</p>
+        <p class="text-xs text-on-surface-variant mt-1">Best time for monuments: before noon.</p>
+      </div>
+      <div class="glass-card p-5 rounded-3xl bg-secondary/5">
+        <h6 class="text-[10px] font-bold text-secondary uppercase tracking-widest mb-2">💡 Local Tip</h6>
+        <p class="text-sm font-bold text-on-surface">Book Taj Mahal tickets online</p>
+        <p class="text-xs text-on-surface-variant mt-1">Skip long queues — pre-book on asi.payumoney.com. Save ₹500 on guides.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ══════════════════════════════════════════════════
+     PROFILE MODAL
+══════════════════════════════════════════════════ -->
+<div id="profileModal" class="hidden fixed inset-0 bg-black/50 z-[100] flex items-center justify-center backdrop-blur-sm p-4" onclick="if(event.target===this)closeProfileModal()">
+  <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl modal-enter">
+    <div class="flex justify-between items-center mb-6">
+      <h3 class="text-xl font-extrabold">My Profile</h3>
+      <button onclick="closeProfileModal()" class="text-on-surface-variant hover:text-on-surface p-1 rounded-full hover:bg-surface-container transition-all">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <!-- Avatar Upload -->
+    <div class="flex flex-col items-center text-center mb-6">
+      <label for="avatar-input" class="avatar-upload-ring mb-3" title="Click to upload photo">
+        <div id="modal-avatar-wrap" class="av-initials">?</div>
+        <div class="upload-badge">
+          <span class="material-symbols-outlined" style="font-size:14px">photo_camera</span>
+        </div>
+      </label>
+      <input type="file" id="avatar-input" accept="image/*" class="hidden" onchange="uploadAvatar(event)"/>
+      <p class="text-[10px] text-on-surface-variant">Click photo to change</p>
+      <h2 id="modal-name" class="text-xl font-extrabold mt-2">Loading…</h2>
+      <p class="text-on-surface-variant text-sm">Traveloop Explorer 🇮🇳</p>
+    </div>
+
+    <!-- Edit Name -->
+    <div class="space-y-3 mb-5">
+      <div class="flex items-center justify-between p-3 bg-surface-container rounded-xl">
+        <span class="text-on-surface-variant text-sm">Display Name</span>
+        <input id="profile-name-input" class="text-right font-semibold text-sm bg-transparent border-none outline-none w-40 text-on-surface" placeholder="Your name"/>
+      </div>
+      <div class="flex items-center justify-between p-3 bg-surface-container rounded-xl">
+        <span class="text-on-surface-variant text-sm">Email</span>
+        <span id="modal-email" class="font-semibold text-sm truncate ml-4 max-w-[180px]">Loading…</span>
+      </div>
+      <div class="flex items-center justify-between p-3 bg-surface-container rounded-xl">
+        <span class="text-on-surface-variant text-sm">Member Since</span>
+        <span id="modal-joined" class="font-semibold text-sm ml-4">—</span>
+      </div>
+    </div>
+
+    <div class="flex gap-3">
+      <button onclick="saveProfile()" class="flex-1 bg-primary text-white py-3 rounded-xl font-bold hover:bg-primary/90 transition-all active:scale-95">Save Changes</button>
+      <button onclick="handleLogout()" class="px-4 py-3 rounded-xl border border-error text-error hover:bg-error/5 transition-all font-semibold text-sm">Logout</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     TRIP DETAIL MODAL (with photo upload)
+══════════════════════════════════════════════════ -->
+<div id="tripModal" class="hidden fixed inset-0 bg-black/50 z-[100] flex items-center justify-center backdrop-blur-sm p-4 overflow-y-auto" onclick="if(event.target===this)closeTripModal()">
+  <div class="bg-white rounded-3xl w-full max-w-2xl my-8 shadow-2xl modal-enter overflow-hidden">
+    <div id="tripModalHero" class="relative h-52 bg-gradient-to-br from-primary to-primary-container">
+      <div class="absolute inset-0 bg-black/30"></div>
+      <button onclick="closeTripModal()" class="absolute top-4 right-4 bg-white/20 backdrop-blur-sm text-white p-2 rounded-full hover:bg-white/40 transition-all z-10">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+      <div class="absolute bottom-5 left-6 z-10">
+        <div id="tripModalBadge" class="inline-block px-3 py-1 rounded-full text-[10px] font-bold mb-2"></div>
+        <h3 id="tripModalTitle" class="text-2xl font-extrabold text-white font-display"></h3>
+        <p id="tripModalDates" class="text-white/75 text-sm mt-1"></p>
+      </div>
+    </div>
+
+    <div class="p-6 max-h-[62vh] overflow-y-auto space-y-6" id="tripModalBody">
+      <div id="tripModalContent" class="space-y-5"></div>
+
+      <!-- Photo Section -->
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <h4 class="font-extrabold text-on-surface text-sm">Trip Photos</h4>
+          <label id="add-photo-btn" for="trip-photo-input" class="cursor-pointer flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary/10 text-primary text-xs font-bold hover:bg-primary/20 transition-all">
+            <span class="material-symbols-outlined text-sm">add_photo_alternate</span> Add Photos
+          </label>
+          <input type="file" id="trip-photo-input" accept="image/*" multiple class="hidden" onchange="uploadTripPhotos(event)"/>
+        </div>
+        <div id="trip-photo-grid" class="grid grid-cols-3 gap-2.5">
+          <div class="photo-slot" style="border-style:dashed">
+            <span class="material-symbols-outlined text-2xl opacity-30">add_photo_alternate</span>
+            <span>Add photo</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="px-6 pb-6 flex gap-3">
+      <button onclick="closeTripModal()" class="flex-1 bg-primary text-white py-3 rounded-xl font-bold hover:bg-primary/90 transition-all">Close</button>
+      <a href="itinerary.html" class="flex-1 py-3 rounded-xl font-bold border border-primary text-primary text-center hover:bg-primary/5 transition-all">Open Itinerary →</a>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     ADD MY TRIP MODAL
+══════════════════════════════════════════════════ -->
+<div id="addTripModal" class="hidden fixed inset-0 bg-black/50 z-[100] flex items-center justify-center backdrop-blur-sm p-4" onclick="if(event.target===this)closeAddTripModal()">
+  <div class="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl modal-enter">
+    <div class="flex justify-between items-center mb-6">
+      <div>
+        <h3 class="text-xl font-extrabold">Add My Trip</h3>
+        <p class="text-xs text-on-surface-variant mt-0.5">Save your India journey to your profile</p>
+      </div>
+      <button onclick="closeAddTripModal()" class="text-on-surface-variant hover:text-on-surface p-1 rounded-full hover:bg-surface-container transition-all">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="space-y-4">
+      <div>
+        <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">Trip Name</label>
+        <input id="new-trip-title" class="w-full bg-surface-container-low border border-outline-variant rounded-xl py-3 px-4 text-sm outline-none focus:ring-2 focus:ring-primary/25" placeholder="e.g. Ladakh Road Trip 2025"/>
+      </div>
+      <div>
+        <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">Destination (India)</label>
+        <select id="new-trip-dest" class="w-full bg-surface-container-low border border-outline-variant rounded-xl py-3 px-4 text-sm outline-none focus:ring-2 focus:ring-primary/25">
+          <option value="">Select destination…</option>
+          <option>Agra & Taj Mahal</option><option>Jaipur — Pink City</option>
+          <option>Delhi — Capital</option><option>Varanasi — Sacred City</option>
+          <option>Kerala Backwaters</option><option>Munnar Tea Gardens</option>
+          <option>Coorg Coffee Estate</option><option>Hampi Ruins</option>
+          <option>Udaipur — City of Lakes</option><option>Rishikesh & Haridwar</option>
+          <option>Andaman & Nicobar</option><option>Goa Beaches</option>
+          <option>Ladakh & Leh</option><option>Darjeeling Hills</option>
+          <option>Mysore & Ooty</option><option>Rann of Kutch</option>
+          <option>Jim Corbett National Park</option><option>Khajuraho Temples</option>
+          <option>Manali & Spiti Valley</option><option>Puri & Konark</option>
+        </select>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">Start Date</label>
+          <input id="new-trip-start" type="date" class="w-full bg-surface-container-low border border-outline-variant rounded-xl py-3 px-4 text-sm outline-none focus:ring-2 focus:ring-primary/25"/>
+        </div>
+        <div>
+          <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">End Date</label>
+          <input id="new-trip-end" type="date" class="w-full bg-surface-container-low border border-outline-variant rounded-xl py-3 px-4 text-sm outline-none focus:ring-2 focus:ring-primary/25"/>
+        </div>
+      </div>
+      <div>
+        <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">Budget (₹)</label>
+        <input id="new-trip-budget" type="number" class="w-full bg-surface-container-low border border-outline-variant rounded-xl py-3 px-4 text-sm outline-none focus:ring-2 focus:ring-primary/25" placeholder="e.g. 25000"/>
+      </div>
+      <div>
+        <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 block">Notes</label>
+        <textarea id="new-trip-notes" rows="2" class="w-full bg-surface-container-low border border-outline-variant rounded-xl py-3 px-4 text-sm outline-none focus:ring-2 focus:ring-primary/25 resize-none" placeholder="Places to visit, things to do…"></textarea>
+      </div>
+    </div>
+    <div class="flex gap-3 mt-6">
+      <button onclick="saveNewTrip()" class="flex-1 bg-primary text-white py-3 rounded-xl font-bold hover:bg-primary/90 transition-all active:scale-95 flex items-center justify-center gap-2">
+        <span class="material-symbols-outlined text-base">save</span> Save Trip
+      </button>
+      <button onclick="closeAddTripModal()" class="px-5 py-3 rounded-xl border border-outline-variant text-on-surface-variant font-semibold hover:bg-surface-container transition-all">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Photo lightbox -->
+<div id="photo-lightbox" class="hidden photo-modal" onclick="closeLightbox()">
+  <img id="lightbox-img" src="" alt="Trip photo"/>
+  <button onclick="closeLightbox()" class="absolute top-5 right-5 bg-white/20 text-white p-2 rounded-full backdrop-blur-sm">
+    <span class="material-symbols-outlined">close</span>
+  </button>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="hidden"></div>
+
+<!-- ══════════ FLOATING CHATBOT ══════════ -->
+<div id="chat-widget" class="fixed bottom-6 right-6 z-[100] flex flex-col items-end">
+  <div id="chat-window" class="hidden mb-4 w-96 h-[500px] rounded-2xl overflow-hidden shadow-2xl glass-card border border-white/40 flex flex-col transition-all duration-300 transform scale-95 opacity-0 origin-bottom-right">
+    <div class="bg-primary p-4 flex justify-between items-center text-white">
+      <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined">assistant</span>
+        <span class="font-bold text-sm">Travel Assistant</span>
+      </div>
+      <button onclick="toggleChat()" class="hover:bg-white/20 p-1 rounded-full transition-colors">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <iframe src="chatbot.html" class="w-full flex-1 border-none" id="chat-iframe"></iframe>
+  </div>
+  <button onclick="toggleChat()" class="w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-lg shadow-primary/30 hover:scale-110 active:scale-95 transition-all">
+    <span id="chat-icon" class="material-symbols-outlined text-2xl">chat</span>
+  </button>
+</div>
+
+<script>
+// ── SUPABASE ───────────────────────────────────────────────────
+const SUPABASE_URL = 'https://lpuiwcvobxsfrzokmqbc.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxwdWl3Y3ZvYnhzZnJ6b2ttcWJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0NjcxNTUsImV4cCI6MjA5NDA0MzE1NX0.jfMj2IgEEEk_A0AB4IEUgsExHkTovHRycnFZIKW5774'
+const { createClient } = supabase
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+let currentUser = null
+let currentTripKey = null   // for photo uploads tied to trip
+let photoCount = 0
+
+// ── HELPERS ───────────────────────────────────────────────────
+function showToast(msg, type='info') {
+  const t = document.getElementById('toast')
+  t.textContent = msg; t.className = type
+  t.classList.remove('hidden')
+  clearTimeout(t._timer)
+  t._timer = setTimeout(()=>t.classList.add('hidden'), 3200)
+}
+
+function setAvatarEl(el, url, initials) {
+  if (url) {
+    el.innerHTML = `<img src="${url}" class="w-full h-full object-cover rounded-full"/>`
+  } else {
+    el.textContent = initials
+  }
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+async function initDashboard() {
+  const { data: { session } } = await sb.auth.getSession()
+  if (!session) { window.location.href = 'login.html'; return }
+  currentUser = session.user
+
+  const meta = currentUser.user_metadata || {}
+  let name = meta.full_name || meta.name || currentUser.email?.split('@')[0] || 'Explorer'
+  const email = currentUser.email || ''
+  const initials = name.charAt(0).toUpperCase()
+  const joined = new Date(currentUser.created_at).toLocaleDateString('en-IN',{month:'short',year:'numeric'})
+
+  // Try loading profile from DB
+  const { data: prof } = await sb.from('profiles').select('name,avatar_url').eq('id', currentUser.id).single()
+  if (prof?.name) name = prof.name
+  const avatarUrl = prof?.avatar_url || null
+
+  // Sidebar
+  document.getElementById('sidebar-name').textContent = name
+  setAvatarEl(document.getElementById('sidebar-avatar-wrap'), avatarUrl, initials)
+  setAvatarEl(document.getElementById('topbar-avatar-wrap'), avatarUrl, initials)
+
+  // Welcome
+  document.getElementById('welcome-msg').textContent = `Welcome back, ${name}! 👋`
+
+  // Profile modal
+  document.getElementById('modal-name').textContent = name
+  document.getElementById('profile-name-input').value = name
+  document.getElementById('modal-email').textContent = email
+  document.getElementById('modal-joined').textContent = joined
+  setAvatarEl(document.getElementById('modal-avatar-wrap'), avatarUrl, initials)
+
+  await loadSavedTrips()
+}
+
+// ── PROFILE MODAL ─────────────────────────────────────────────
+function openProfileModal() { document.getElementById('profileModal').classList.remove('hidden') }
+function closeProfileModal() { document.getElementById('profileModal').classList.add('hidden') }
+
+async function saveProfile() {
+  const name = document.getElementById('profile-name-input').value.trim()
+  if (!name) return showToast('Enter a name','error')
+  const { error } = await sb.from('profiles').upsert({ id: currentUser.id, name, email: currentUser.email }, { onConflict: 'id' })
+  if (error) return showToast('Failed to save: '+error.message,'error')
+  document.getElementById('sidebar-name').textContent = name
+  document.getElementById('modal-name').textContent = name
+  document.getElementById('welcome-msg').textContent = `Welcome back, ${name}! 👋`
+  showToast('Profile updated ✓','success')
+  closeProfileModal()
+}
+
+// ── AVATAR UPLOAD ─────────────────────────────────────────────
+async function uploadAvatar(event) {
+  const file = event.target.files[0]
+  if (!file) return
+  if (file.size > 3 * 1024 * 1024) return showToast('Image must be under 3 MB','error')
+
+  showToast('Uploading photo…','info')
+  const ext = file.name.split('.').pop()
+  const path = `${currentUser.id}/avatar.${ext}`
+
+  const { error: upErr } = await sb.storage.from('avatars').upload(path, file, { upsert: true })
+  if (upErr) return showToast('Upload failed: '+upErr.message,'error')
+
+  const { data: { publicUrl } } = sb.storage.from('avatars').getPublicUrl(path)
+  const url = publicUrl + '?t=' + Date.now()
+
+  await sb.from('profiles').upsert({ id: currentUser.id, avatar_url: url, email: currentUser.email }, { onConflict: 'id' })
+
+  setAvatarEl(document.getElementById('modal-avatar-wrap'), url, '?')
+  setAvatarEl(document.getElementById('sidebar-avatar-wrap'), url, '?')
+  setAvatarEl(document.getElementById('topbar-avatar-wrap'), url, '?')
+  showToast('Photo updated ✓','success')
+}
+
+// ── SAVED TRIPS ───────────────────────────────────────────────
+async function loadSavedTrips() {
+  const { data: trips } = await sb.from('trips').select('*').eq('user_id', currentUser.id).order('created_at',{ascending:false})
+  const section = document.getElementById('saved-trips-section')
+  const grid = document.getElementById('saved-trips-grid')
+
+  if (!trips?.length) { section.style.display='none'; document.getElementById('stat-trips').textContent='0'; return }
+
+  section.style.display = 'block'
+  document.getElementById('stat-trips').textContent = trips.length
+  document.getElementById('stat-cities').textContent = trips.length * 2 + '+'
+  document.getElementById('stat-budget').textContent = '₹' + (trips.reduce((s,t)=>s+(parseInt(t.budget)||0),0)/1000).toFixed(0) + 'K'
+
+  const bgImgs = [
+    'https://images.unsplash.com/photo-1564507592333-c60657eea523?w=600&h=400&fit=crop',
+    'https://images.unsplash.com/photo-1477587458883-47145ed94245?w=600&h=400&fit=crop',
+    'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?w=600&h=400&fit=crop',
+    'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=600&h=400&fit=crop',
+    'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop',
+    'https://images.unsplash.com/photo-1607619662634-3ac55ec0e216?w=600&h=400&fit=crop',
+  ]
+
+  // Count photos
+  const { count: pCount } = await sb.from('trip_photos').select('*',{count:'exact',head:true}).eq('user_id', currentUser.id)
+  document.getElementById('stat-photos').textContent = pCount || 0
+  photoCount = pCount || 0
+
+  grid.innerHTML = trips.map((trip, i) => `
+    <div class="trip-card group relative h-[280px] rounded-3xl overflow-hidden glass-card shadow-md cursor-pointer border border-primary/10"
+      onclick="openSavedTripModal('${trip.id}','${escHtml(trip.title)}','${escHtml(trip.destination||'')}','${trip.start_date||''}','${trip.end_date||''}')">
+      <img class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-85"
+        src="${bgImgs[i % bgImgs.length]}" alt="${escHtml(trip.title)}"/>
+      <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+      <div class="absolute top-4 right-4 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-white text-[10px] font-bold">MY TRIP</div>
+      <div class="absolute bottom-0 left-0 w-full p-6">
+        <h4 class="text-lg font-extrabold text-white">${escHtml(trip.title)}</h4>
+        <div class="flex items-center justify-between mt-1.5">
+          <p class="text-white/70 text-xs flex items-center gap-1">
+            <span class="material-symbols-outlined text-xs">location_on</span> ${escHtml(trip.destination||'India')}
+          </p>
+          ${trip.budget ? `<span class="text-white/60 text-xs font-semibold">₹${parseInt(trip.budget).toLocaleString('en-IN')}</span>` : ''}
+        </div>
+        <p class="text-white/50 text-[10px] mt-1">${trip.start_date||''} ${trip.end_date?'→ '+trip.end_date:''}</p>
+      </div>
+    </div>`).join('')
+}
+
+function escHtml(s) { return String(s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;') }
+
+// ── ADD TRIP MODAL ────────────────────────────────────────────
+function openAddTripModal() { document.getElementById('addTripModal').classList.remove('hidden') }
+function closeAddTripModal() { document.getElementById('addTripModal').classList.add('hidden') }
+
+async function saveNewTrip() {
+  const title = document.getElementById('new-trip-title').value.trim()
+  const destination = document.getElementById('new-trip-dest').value
+  const start_date = document.getElementById('new-trip-start').value
+  const end_date = document.getElementById('new-trip-end').value
+  const budget = document.getElementById('new-trip-budget').value
+  const notes = document.getElementById('new-trip-notes').value.trim()
+
+  if (!title) return showToast('Enter a trip name','error')
+  if (!destination) return showToast('Select a destination','error')
+
+  const { error } = await sb.from('trips').insert({ user_id: currentUser.id, title, destination, start_date: start_date||null, end_date: end_date||null, budget: budget||null, notes })
+  if (error) return showToast('Failed to save: '+error.message,'error')
+
+  showToast('Trip saved! 🎉','success')
+  closeAddTripModal()
+  ;['new-trip-title','new-trip-start','new-trip-end','new-trip-budget','new-trip-notes'].forEach(id=>document.getElementById(id).value='')
+  document.getElementById('new-trip-dest').selectedIndex=0
+  await loadSavedTrips()
+}
+
+// ── TRIP MODAL (inspiration) ──────────────────────────────────
+const tripsData = {
+  goldenTriangle:{title:"The Golden Triangle",dates:"Oct 12 – Oct 24, 2025 · 12 Days",status:"UPCOMING",statusColor:"bg-primary-container text-white",heroImg:"https://images.unsplash.com/photo-1564507592333-c60657eea523?w=800&h=400&fit=crop",budget:"₹1,45,000",places:[{city:"Agra",emoji:"🏛️",days:"Day 1–3",items:["Taj Mahal — Best at sunrise, arrive by 6 AM","Agra Fort — UNESCO Mughal fortress, 2.5 hrs","Fatehpur Sikri — Abandoned ghost city, 40 km","Itmad-ud-Daulah — Baby Taj, exquisite inlay","Mehtab Bagh — Moonlight views across the Yamuna"]},{city:"Jaipur",emoji:"🎨",days:"Day 4–8",items:["Amber Fort — Elephant rides & Sheesh Mahal","Hawa Mahal — Palace of Winds, 953 windows","City Palace — Rajasthani-Mughal fusion museum","Jantar Mantar — World's largest stone sundial","Jal Mahal — Water Palace at sunset"]},{city:"Delhi",emoji:"🕌",days:"Day 9–12",items:["Red Fort — Symbol of independence","India Gate & Rajpath","Chandni Chowk — Street food capital of India","Humayun's Tomb — Mughal garden architecture","Qutub Minar — 73 m iron pillar victory tower"]}]},
+  keralaBackwaters:{title:"Kerala Backwaters",dates:"Sep 5 – Sep 13, 2025 · 8 Days",status:"ACTIVE",statusColor:"bg-secondary-container text-on-secondary-container",heroImg:"https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=800&h=400&fit=crop",budget:"₹72,000",places:[{city:"Alleppey",emoji:"🛶",days:"Day 1–4",items:["Houseboat overnight stay on the backwaters","Kumarakom Bird Sanctuary","Vembanad Lake — largest lake in Kerala","Pathiramanal Island — migratory birds","Traditional Kerala Sadhya meals"]},{city:"Munnar",emoji:"🌿",days:"Day 5–7",items:["Eravikulam National Park — Nilgiri Tahr","Mattupetty Dam boat rides","Tea Museum — Nilgiri tea history","Kolukkumalai — world's highest tea estate"]},{city:"Fort Kochi",emoji:"⚓",days:"Day 8",items:["Chinese Fishing Nets at sunset","Mattancherry Palace","Jewish Synagogue (1568)","Fort Kochi heritage walk"]}]},
+  varanasi:{title:"Varanasi & Sarnath",dates:"Nov 1 – Nov 7, 2025 · 6 Days",status:"UPCOMING",statusColor:"bg-tertiary-container text-on-tertiary-container",heroImg:"https://images.unsplash.com/photo-1561361513-2d000a50f0dc?w=800&h=400&fit=crop",budget:"₹42,000",places:[{city:"Varanasi",emoji:"🪔",days:"Day 1–5",items:["Ganga Aarti at Dashashwamedh Ghat — unmissable","Sunrise boat ride on the Ganges","Kashi Vishwanath Temple","Sarnath — where Buddha gave first sermon","Benaras Hindu University campus","Ramnagar Fort across the river"]},{city:"Sarnath",emoji:"☸️",days:"Day 6",items:["Dhamek Stupa — 3rd century BCE","Archaeological Museum","Mulagandha Kuti Vihar temple","Japanese Temple garden"]}]},
+  hampi:{title:"Hampi — Vijayanagara Ruins",dates:"Dec 10 – Dec 15, 2025 · 5 Days",status:"UPCOMING",statusColor:"bg-primary-container text-white",heroImg:"https://images.unsplash.com/photo-1599661046289-e31897846e41?w=800&h=400&fit=crop",budget:"₹35,000",places:[{city:"Hampi",emoji:"🏛️",days:"All 5 Days",items:["Virupaksha Temple — still active 7th century temple","Vittala Temple & Stone Chariot — UNESCO site","Matanga Hill — sunrise panorama","Lotus Mahal & Elephant Stables","Underground Shiva Temple","Tungabhadra River coracle rides","Hippie Island (Virupapur Gadde) — sunset"]}]},
+  coorg:{title:"Coorg Coffee Country",dates:"Jan 8 – Jan 13, 2026 · 5 Days",status:"UPCOMING",statusColor:"bg-secondary-container text-on-secondary-container",heroImg:"https://images.unsplash.com/photo-1588083949404-c4f1ed1323b3?w=800&h=400&fit=crop",budget:"₹38,000",places:[{city:"Coorg / Madikeri",emoji:"☕",days:"All 5 Days",items:["Coffee & spice plantation walk","Abbey Falls — 70-foot waterfall","Raja's Seat — sunset garden","Nagarhole National Park safari","Mandalpatti peak jeep safari","Raja's Tomb heritage walk","Golden Temple (Bylakuppe Tibetan settlement)"]}]},
+  rishikesh:{title:"Rishikesh & Haridwar",dates:"Feb 14 – Feb 20, 2026 · 6 Days",status:"UPCOMING",statusColor:"bg-primary-container text-white",heroImg:"https://images.unsplash.com/photo-1544552866-d3ed42536cfd?w=800&h=400&fit=crop",budget:"₹45,000",places:[{city:"Rishikesh",emoji:"🌊",days:"Day 1–4",items:["White water rafting — Grade 3 & 4 rapids","Laxman Jhula & Ram Jhula suspension bridges","Triveni Ghat evening aarti","Neelkanth Mahadev Temple trek","Bungee jumping — 83m, highest in India","Beatles Ashram (Maharishi Mahesh Yogi)"]},{city:"Haridwar",emoji:"🙏",days:"Day 5–6",items:["Har Ki Pauri Ganga Aarti — most sacred","Mansa Devi Temple cable car","Chandi Devi Temple","Rajaji National Park day safari"]}]},
+  udaipur:{title:"Udaipur — City of Lakes",dates:"Mar 5 – Mar 11, 2026 · 6 Days",status:"UPCOMING",statusColor:"bg-secondary-container text-on-secondary-container",heroImg:"https://images.unsplash.com/photo-1477587458883-47145ed94245?w=800&h=400&fit=crop",budget:"₹55,000",places:[{city:"Udaipur",emoji:"🏰",days:"All 6 Days",items:["City Palace — largest palace complex in Rajasthan","Lake Pichola boat ride to Jag Mandir island","Jag Niwas / Lake Palace Hotel","Sajjangarh (Monsoon Palace) — hilltop fort","Saheliyon ki Bari — Garden of Maidens","Vintage Car Museum","Bagore Ki Haveli cultural show"]}]},
+  andaman:{title:"Andaman Islands",dates:"Apr 1 – Apr 9, 2026 · 8 Days",status:"UPCOMING",statusColor:"bg-primary-container text-white",heroImg:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=400&fit=crop",budget:"₹85,000",places:[{city:"Port Blair",emoji:"⛵",days:"Day 1–2",items:["Cellular Jail — National Memorial (Light & Sound show)","Corbyn's Cove beach","Ross Island — British ruins & deer"]},{city:"Havelock (Swaraj Dweep)",emoji:"🤿",days:"Day 3–6",items:["Radhanagar Beach — Asia's best beach","Elephant Beach snorkelling","Scuba diving in crystal-clear waters","Sea kayaking through mangroves"]},{city:"Neil Island (Shaheed Dweep)",emoji:"🐚",days:"Day 7–8",items:["Natural Bridge rock formation","Bharatpur Beach — glass-bottom boats","Lakshamanpur Beach sunset"]}]},
+  munnarTea:{title:"Munnar Tea Trails",dates:"May 3 – May 10, 2026 · 7 Days",status:"UPCOMING",statusColor:"bg-tertiary-container text-on-tertiary-container",heroImg:"https://images.unsplash.com/photo-1609766934234-1e59184dde0e?w=800&h=400&fit=crop",budget:"₹52,000",places:[{city:"Munnar",emoji:"🌿",days:"Day 1–5",items:["Eravikulam National Park — Nilgiri Tahr","Mattupetty Dam & Indo-Swiss Livestock Project","Tea Museum — Nilgiri tea history","Kolukkumalai — world's highest tea estate (2,100m)","Attukal & Lakkam Waterfalls","Top Station — panoramic ghats views"]},{city:"Ooty via Coimbatore",emoji:"🚂",days:"Day 6–7",items:["Nilgiri Mountain Railway — UNESCO Toy Train","Botanical Gardens — 55 acres, prehistoric tree","Doddabetta Peak — highest Nilgiri point (2,637m)"]}]}
+}
+
+function openTripModal(key) {
+  currentTripKey = key
+  const trip = tripsData[key]
+  if (!trip) return
+  document.getElementById('tripModalTitle').textContent = trip.title
+  document.getElementById('tripModalDates').textContent = trip.dates + '  ·  Est. ' + trip.budget
+  const badge = document.getElementById('tripModalBadge')
+  badge.className = 'inline-block px-3 py-1 rounded-full text-[10px] font-bold mb-2 ' + trip.statusColor
+  badge.textContent = trip.status
+  const hero = document.getElementById('tripModalHero')
+  hero.style.cssText = `background:url('${trip.heroImg}') center/cover;`
+  let html = ''
+  trip.places.forEach((place, i) => {
+    const borders = ['border-primary','border-secondary','border-tertiary']
+    html += `<div class="border-l-4 ${borders[i%3]} pl-4 py-1">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-lg">${place.emoji}</span>
+        <h4 class="text-base font-extrabold text-on-surface">${place.city}</h4>
+        <span class="ml-auto text-[10px] px-2 py-1 bg-surface-container rounded-full text-on-surface-variant font-semibold">${place.days}</span>
+      </div>
+      <ul class="space-y-1.5">${place.items.map(item=>`<li class="flex gap-2 text-sm text-on-surface-variant"><span class="text-primary mt-0.5 flex-shrink-0">▸</span><span>${item}</span></li>`).join('')}</ul>
+    </div>`
+  })
+  document.getElementById('tripModalContent').innerHTML = html
+  loadTripPhotos('inspiration_' + key)
+  document.getElementById('tripModal').classList.remove('hidden')
+}
+
+function openSavedTripModal(tripId, title, dest, startDate, endDate) {
+  currentTripKey = 'saved_' + tripId
+  document.getElementById('tripModalTitle').textContent = title
+  document.getElementById('tripModalDates').textContent = [dest, startDate&&endDate?startDate+' → '+endDate:''].filter(Boolean).join(' · ')
+  const badge = document.getElementById('tripModalBadge')
+  badge.className = 'inline-block px-3 py-1 rounded-full text-[10px] font-bold mb-2 bg-primary-container text-white'
+  badge.textContent = 'MY TRIP'
+  document.getElementById('tripModalHero').style.cssText = 'background: linear-gradient(135deg, #005f8f, #0ea5e9);'
+  document.getElementById('tripModalContent').innerHTML = `<p class="text-on-surface-variant text-sm">📍 ${dest || 'India'}</p>`
+  loadTripPhotos('saved_' + tripId)
+  document.getElementById('tripModal').classList.remove('hidden')
+}
+
+function closeTripModal() { document.getElementById('tripModal').classList.add('hidden'); currentTripKey = null }
+
+// ── TRIP PHOTOS ───────────────────────────────────────────────
+async function loadTripPhotos(tripKey) {
+  const grid = document.getElementById('trip-photo-grid')
+  grid.innerHTML = `<div class="photo-slot"><span class="material-symbols-outlined text-2xl opacity-25">add_photo_alternate</span><span>Add photo</span></div>`
+
+  if (!currentUser) return
+  const { data } = await sb.from('trip_photos').select('url,id').eq('user_id', currentUser.id).eq('trip_key', tripKey).order('created_at',{ascending:false})
+  if (!data?.length) return
+
+  const photos = data.map(p => `
+    <div class="photo-slot" onclick="openLightbox('${p.url}')">
+      <img src="${p.url}" alt="Trip photo"/>
+      <div class="overlay"><span class="material-symbols-outlined text-sm">open_in_full</span></div>
+    </div>`).join('')
+
+  grid.innerHTML = photos + `<div class="photo-slot" onclick="document.getElementById('trip-photo-input').click()">
+    <span class="material-symbols-outlined text-2xl opacity-25">add_photo_alternate</span><span>Add more</span>
+  </div>`
+}
+
+async function uploadTripPhotos(event) {
+  if (!currentTripKey) return showToast('Open a trip first','error')
+  const files = Array.from(event.target.files)
+  if (!files.length) return
+
+  showToast(`Uploading ${files.length} photo${files.length>1?'s':''}…`,'info')
+  let uploaded = 0
+
+  for (const file of files) {
+    if (file.size > 8 * 1024 * 1024) { showToast('Skip: '+file.name+' too large (max 8MB)','error'); continue }
+    const ext = file.name.split('.').pop()
+    const path = `${currentUser.id}/${currentTripKey}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
+
+    const { error: upErr } = await sb.storage.from('trip-photos').upload(path, file)
+    if (upErr) { console.error(upErr); continue }
+
+    const { data: { publicUrl } } = sb.storage.from('trip-photos').getPublicUrl(path)
+    await sb.from('trip_photos').insert({ user_id: currentUser.id, trip_key: currentTripKey, url: publicUrl, path })
+    uploaded++
+  }
+
+  if (uploaded > 0) {
+    showToast(`${uploaded} photo${uploaded>1?'s':''} added! 📸`,'success')
+    photoCount += uploaded
+    document.getElementById('stat-photos').textContent = photoCount
+    await loadTripPhotos(currentTripKey)
+  }
+  event.target.value = ''
+}
+
+function openLightbox(url) {
+  document.getElementById('lightbox-img').src = url
+  document.getElementById('photo-lightbox').classList.remove('hidden')
+}
+function closeLightbox() { document.getElementById('photo-lightbox').classList.add('hidden') }
+
+// ── LOGOUT ────────────────────────────────────────────────────
+async function handleLogout() {
+  await sb.auth.signOut()
+  window.location.href = 'login.html'
+}
+
+// ── SMART PLANNER ─────────────────────────────────────────────
+const destData = {
+  "Agra":{spots:[{name:"Taj Mahal",desc:"White marble mausoleum; best at sunrise, built 1631–1653."},{name:"Agra Fort",desc:"UNESCO red sandstone fortress, 2.5 km from Taj."},{name:"Fatehpur Sikri",desc:"Abandoned Mughal capital, 40 km from Agra."},{name:"Itmad-ud-Daulah",desc:"First all-marble Mughal structure — Baby Taj."},{name:"Mehtab Bagh",desc:"Moonlight views of Taj from across the Yamuna."}],hotels:{economy:{name:"The Hosteller Agra",price:"₹1,200",stars:2},comfort:{name:"Radisson Agra",price:"₹6,500",stars:4},luxury:{name:"The Oberoi Amarvilas",price:"₹45,000",stars:5}}},
+  "Jaipur":{spots:[{name:"Amber Fort",desc:"Hilltop Rajput fort with Sheesh Mahal mirror palace."},{name:"Hawa Mahal",desc:"Palace of Winds — 953 jharokha windows."},{name:"City Palace",desc:"Royal residence, now a museum."},{name:"Jantar Mantar",desc:"UNESCO — world's largest stone astronomical instruments."},{name:"Jal Mahal",desc:"Water Palace in the middle of Man Sagar Lake."},{name:"Nahargarh Fort",desc:"Sunset panorama over the Pink City."}],hotels:{economy:{name:"Zostel Jaipur",price:"₹1,000",stars:2},comfort:{name:"ITC Rajputana",price:"₹12,000",stars:5},luxury:{name:"Rambagh Palace",price:"₹75,000",stars:5}}},
+  "Munnar":{spots:[{name:"Eravikulam National Park",desc:"Home to endangered Nilgiri Tahr."},{name:"Mattupetty Dam",desc:"Scenic lake, boat rides, wild elephants nearby."},{name:"Tea Museum",desc:"History and process of Nilgiri tea-making."},{name:"Kolukkumalai",desc:"World's highest tea estate at 2,100 m."},{name:"Attukal Waterfalls",desc:"Dense jungle waterfall, short trek."}],hotels:{economy:{name:"Munnar Inn",price:"₹1,500",stars:2},comfort:{name:"The Fog Munnar",price:"₹8,000",stars:4},luxury:{name:"Blanket Hotel & Spa",price:"₹18,000",stars:5}}},
+  "Ooty":{spots:[{name:"Nilgiri Mountain Railway",desc:"UNESCO Toy Train — 46 km, 208 curves."},{name:"Botanical Gardens",desc:"55 acres, 20-million-year-old fossil tree."},{name:"Ooty Lake",desc:"Boating and pleasant lakeside walks."},{name:"Doddabetta Peak",desc:"Highest point in Nilgiris — 2,637 m."},{name:"Pykara Waterfalls",desc:"Speedboats and picnic spot."},{name:"Rose Garden",desc:"Over 20,000 varieties, TNAU maintained."}],hotels:{economy:{name:"Reflections Guesthouse",price:"₹1,200",stars:2},comfort:{name:"Sterling Fern Hill",price:"₹7,500",stars:4},luxury:{name:"Savoy Ooty — IHCL SeleQtions",price:"₹22,000",stars:5}}},
+  "Varanasi":{spots:[{name:"Dashashwamedh Ghat Aarti",desc:"Grand evening ceremony on the Ganges."},{name:"Sunrise Boat Ride",desc:"Float past 80+ ghats at dawn."},{name:"Kashi Vishwanath Temple",desc:"One of the 12 Jyotirlingas."},{name:"Sarnath",desc:"Where Buddha delivered his first sermon."},{name:"Benaras Hindu University",desc:"Bharat Kala Bhawan museum on campus."}],hotels:{economy:{name:"Hotel Alka",price:"₹1,400",stars:2},comfort:{name:"Brijrama Palace",price:"₹14,000",stars:5},luxury:{name:"Taj Ganges Varanasi",price:"₹22,000",stars:5}}},
+  "Hampi":{spots:[{name:"Virupaksha Temple",desc:"Living 7th-century temple, 52 m tower."},{name:"Vittala Temple",desc:"UNESCO — stone chariot, musical pillars."},{name:"Matanga Hill",desc:"Sunrise with 360° panorama."},{name:"Lotus Mahal",desc:"Indo-Islamic architecture gem."},{name:"Tungabhadra River",desc:"Coracle rides through giant boulders."}],hotels:{economy:{name:"Gopi Guesthouse",price:"₹1,000",stars:1},comfort:{name:"Clarks Inn Hampi",price:"₹4,500",stars:3},luxury:{name:"Evolve Back Kamath Resort",price:"₹35,000",stars:5}}},
+  "Coorg":{spots:[{name:"Abbey Falls",desc:"70-foot waterfall in coffee estate."},{name:"Raja's Seat",desc:"Colonial-era garden, sunset views."},{name:"Nagarhole Safari",desc:"Tiger reserve — jeep and boat safaris."},{name:"Mandalpatti Peak",desc:"Sea of clouds, jeep ride required."},{name:"Golden Temple Bylakuppe",desc:"Largest Tibetan settlement outside Tibet."}],hotels:{economy:{name:"Coorg Wilderness Resort",price:"₹3,500",stars:3},comfort:{name:"Orange County Resort",price:"₹18,000",stars:5},luxury:{name:"Evolve Back Kuruba Safari Lodge",price:"₹40,000",stars:5}}},
+  "Rishikesh":{spots:[{name:"Rafting — Shivpuri to Rishikesh",desc:"16 km, Grade 3–4 rapids."},{name:"Laxman Jhula",desc:"Iconic suspension bridge over the Ganges."},{name:"Triveni Ghat Aarti",desc:"Evening ceremony with floating diyas."},{name:"Beatles Ashram",desc:"Maharishi Mahesh Yogi's famous retreat."},{name:"Bungee Jumping",desc:"83 m — highest in India at Jumping Heights."}],hotels:{economy:{name:"Zostel Rishikesh",price:"₹800",stars:2},comfort:{name:"Aloha on the Ganges",price:"₹8,000",stars:4},luxury:{name:"Ananda in the Himalayas",price:"₹65,000",stars:5}}},
+  "Udaipur":{spots:[{name:"City Palace",desc:"Largest palace complex in Rajasthan, 400 years old."},{name:"Lake Pichola Boat Ride",desc:"To Jag Mandir and the Lake Palace island."},{name:"Sajjangarh (Monsoon Palace)",desc:"Hilltop fort, stunning sunset views."},{name:"Saheliyon Ki Bari",desc:"Garden of Maidens — fountains & marble kiosks."},{name:"Bagore Ki Haveli",desc:"Evening folk dance show — best in Rajasthan."}],hotels:{economy:{name:"Hotel Mahendra Prakash",price:"₹1,800",stars:2},comfort:{name:"Fateh Garh",price:"₹12,000",stars:4},luxury:{name:"Taj Lake Palace Udaipur",price:"₹55,000",stars:5}}},
+  "Andaman":{spots:[{name:"Radhanagar Beach (Havelock)",desc:"Voted Asia's best beach multiple times."},{name:"Cellular Jail",desc:"National Memorial — witness the evening Light & Sound show."},{name:"Scuba Diving",desc:"Visibility up to 20 m — coral reefs in Elephant Beach."},{name:"Neil Island Natural Bridge",desc:"Coral rock arch — best at low tide."},{name:"Ross Island",desc:"Abandoned British settlement, deer roam freely."}],hotels:{economy:{name:"Teal Guest House Port Blair",price:"₹1,500",stars:2},comfort:{name:"Sea Shell Hotel",price:"₹9,000",stars:4},luxury:{name:"Taj Exotica Andaman",price:"₹45,000",stars:5}}}
+}
+
+function generatePlan() {
+  const dest = document.getElementById('plan-dest').value
+  const budget = parseFloat(document.getElementById('plan-budget').value)
+  const days = parseInt(document.getElementById('plan-days').value)
+  if (!budget || !days || days < 1) return showToast('Enter budget and number of days','error')
+
+  const data = destData[dest]
+  if (!data) return showToast('Select a valid destination','error')
+
+  let tier = 'economy'
+  if (budget / days > 15000) tier = 'luxury'
+  else if (budget / days > 4000) tier = 'comfort'
+  const hotel = data.hotels[tier]
+
+  document.getElementById('plan-sidebar').innerHTML = `
+    <div class="bg-primary/5 p-6 rounded-3xl border border-primary/10">
+      <h4 class="text-[10px] font-bold text-primary uppercase tracking-widest mb-4">Recommended Stay</h4>
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-primary shadow-sm">
+          <span class="material-symbols-outlined text-base">hotel</span>
+        </div>
+        <div>
+          <p class="font-bold text-sm text-on-surface">${hotel.name}</p>
+          <p class="text-[11px] text-on-surface-variant">${'★'.repeat(hotel.stars)} · ${tier.charAt(0).toUpperCase()+tier.slice(1)}</p>
+        </div>
+      </div>
+      <div class="flex justify-between items-center py-3 border-t border-primary/10">
+        <span class="text-xs text-on-surface-variant">Nightly Rate</span>
+        <span class="font-bold text-secondary text-sm">${hotel.price}</span>
+      </div>
+      <div class="pt-4">
+        <p class="text-[10px] font-bold text-on-surface-variant uppercase mb-2">Budget Usage</p>
+        <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+          <div class="bg-primary h-full transition-all duration-700" style="width:${tier==='luxury'?'90%':tier==='comfort'?'58%':'28%'}"></div>
+        </div>
+        <p class="text-[10px] text-on-surface-variant mt-1 text-center">Optimised for ${tier} tier · ₹${budget.toLocaleString('en-IN')} total</p>
+      </div>
+    </div>
+    <div class="bg-secondary/5 p-5 rounded-3xl border border-secondary/10">
+      <h4 class="text-[10px] font-bold text-secondary uppercase tracking-widest mb-2">💡 Local Tip</h4>
+      <p class="text-xs leading-relaxed text-on-surface-variant">For ${days} days in ${dest}, we've picked the top ${Math.min(data.spots.length, days*2)} spots. <strong>${hotel.name}</strong> keeps you central and fits your ₹${budget.toLocaleString('en-IN')} budget well.</p>
+    </div>`
+
+  let tHTML = `<h4 class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-4 ml-1">Day-by-Day Itinerary</h4>`
+  for (let i = 1; i <= Math.min(days, 7); i++) {
+    const s1 = data.spots[(i-1)*2 % data.spots.length]
+    const s2 = data.spots[((i-1)*2+1) % data.spots.length]
+    tHTML += `<div class="flex gap-4">
+      <div class="flex flex-col items-center">
+        <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-extrabold shrink-0">${String(i).padStart(2,'0')}</div>
+        <div class="w-0.5 flex-1 bg-primary/15 my-1"></div>
+      </div>
+      <div class="flex-1 pb-5">
+        <h5 class="font-extrabold text-on-surface text-sm mb-3">Day ${i}${i===1?' — Arrival & First Impressions':i===days?' — Departure Day':' — Exploration'}</h5>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="glass-card p-4 rounded-2xl bg-white/50">
+            <p class="text-[9px] font-bold text-primary uppercase tracking-widest mb-1">Morning</p>
+            <p class="font-bold text-sm">${s1.name}</p>
+            <p class="text-xs text-on-surface-variant mt-1 leading-relaxed">${s1.desc}</p>
+          </div>
+          <div class="glass-card p-4 rounded-2xl bg-white/50">
+            <p class="text-[9px] font-bold text-secondary uppercase tracking-widest mb-1">Afternoon</p>
+            <p class="font-bold text-sm">${s2.name}</p>
+            <p class="text-xs text-on-surface-variant mt-1 leading-relaxed">${s2.desc}</p>
+          </div>
+        </div>
+      </div>
+    </div>`
+  }
+  if (days > 7) tHTML += `<p class="text-xs text-on-surface-variant text-center py-3 italic">+ ${days-7} more days of exploration</p>`
+
+  document.getElementById('plan-timeline').innerHTML = tHTML
+  document.getElementById('plan-output').classList.remove('hidden')
+  setTimeout(()=>document.getElementById('plan-output').scrollIntoView({behavior:'smooth',block:'start'}), 100)
+}
+
+// ── CHAT TOGGLE ───────────────────────────────────────────────
+function toggleChat() {
+  const win = document.getElementById('chat-window')
+  const icon = document.getElementById('chat-icon')
+  const isHidden = win.classList.contains('hidden')
+  if (isHidden) {
+    win.classList.remove('hidden')
+    setTimeout(()=>{ win.classList.remove('scale-95','opacity-0'); win.classList.add('scale-100','opacity-100') }, 10)
+    icon.textContent = 'close'
+  } else {
+    win.classList.remove('scale-100','opacity-100'); win.classList.add('scale-95','opacity-0')
+    setTimeout(()=>{ win.classList.add('hidden'); icon.textContent = 'chat' }, 280)
+  }
+}
+
+// ── KEYBOARD SHORTCUTS ────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeProfileModal(); closeTripModal(); closeAddTripModal(); closeLightbox() }
+})
+
+// ── BOOT ──────────────────────────────────────────────────────
+initDashboard()
+</script>
 </body>
-
 </html>

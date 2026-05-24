@@ -1,607 +1,881 @@
 <!DOCTYPE html>
-<html class="light" lang="en">
+<html lang="en">
 <head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Friends & Groups - Travelloop</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <script src="api.js"></script>
-    <script id="tailwind-config">
-        tailwind.config = {
-          darkMode: "class",
-          theme: {
-            extend: {
-              "colors": {
-                      "background": "#f7f9fb",
-                      "surface-container-low": "#f2f4f6",
-                      "on-surface": "#191c1e",
-                      "primary": "#006591",
-                      "on-primary": "#ffffff",
-                      "secondary": "#006c49",
-                      "on-surface-variant": "#3e4850",
-                      "outline-variant": "#bec8d2"
-              },
-              "fontFamily": {
-                      "display-lg": ["Plus Jakarta Sans"],
-                      "body-md": ["Inter"]
-              }
-            }
-          }
-        }
-    </script>
-    <style>
-        .glass-card {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(16px);
-            border: 1.5px solid rgba(255, 255, 255, 0.3);
-        }
-        .friend-avatar {
-            position: relative;
-        }
-        .status-indicator {
-            position: absolute;
-            bottom: 2px;
-            right: 2px;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            border: 2px solid white;
-            background: #4edea3;
-        }
-    </style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Trip Planner — Friends & Community</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --teal:#2DD4BF; --teal-bright:#5EEAD4; --teal-dim:rgba(45,212,191,0.12);
+      --amber:#F59E0B; --amber-bright:#FCD34D; --amber-dim:rgba(245,158,11,0.12);
+      --rose:#FB7185; --rose-dim:rgba(251,113,133,0.1);
+      --sky:#38BDF8; --sky-dim:rgba(56,189,248,0.1);
+      --ink:#080C10; --ink-2:#0E1318; --ink-3:#141B22; --ink-4:#1B232C; --ink-5:#222C37;
+      --text-1:#EEF2F7; --text-2:#8FA3B3; --text-3:#4A5D6E;
+      --success:#34D399; --danger:#F87171; --warn:#FBBF24;
+      --font-display:'Playfair Display',Georgia,serif;
+      --font-body:'DM Sans',sans-serif;
+      --font-mono:'DM Mono',monospace;
+      --t:0.22s cubic-bezier(0.4,0,0.2,1);
+      --radius:16px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:var(--font-body);background:var(--ink);color:var(--text-1);min-height:100vh;overflow-x:hidden}
+    a{text-decoration:none;color:inherit}
+    button{font-family:var(--font-body);cursor:pointer}
+    input,textarea{font-family:var(--font-body)}
+    .bg-wrap{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+    .orb{position:absolute;border-radius:50%;filter:blur(130px)}
+    .orb-1{width:700px;height:700px;background:var(--teal);opacity:0.04;top:-300px;right:-150px}
+    .orb-2{width:500px;height:500px;background:var(--amber);opacity:0.035;bottom:-100px;left:-100px}
+    .orb-3{width:350px;height:350px;background:var(--rose);opacity:0.03;top:50%;right:10%}
+    .grid-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(45,212,191,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(45,212,191,0.025) 1px,transparent 1px);background-size:64px 64px}
+    .page{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:40px 40px 80px}
+    .nav{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:100;display:flex;align-items:center;gap:28px;padding:10px 20px;border-radius:99px;background:rgba(8,12,16,0.85);backdrop-filter:blur(24px) saturate(180%);border:1px solid rgba(45,212,191,0.1);width:max-content;max-width:calc(100vw - 32px)}
+    .nav-logo{display:flex;align-items:center;gap:8px;font-family:var(--font-display);font-size:1rem;font-weight:700;color:var(--teal);letter-spacing:-0.3px}
+    .nav ul{display:flex;gap:2px;list-style:none}
+    .nav ul a{padding:5px 12px;border-radius:99px;font-size:0.78rem;font-weight:500;color:var(--text-2);transition:all var(--t)}
+    .nav ul a:hover,.nav ul a.active{color:var(--teal);background:var(--teal-dim)}
+    .nav-actions{display:flex;align-items:center;gap:8px}
+    .status-pill{display:flex;align-items:center;gap:5px;padding:4px 11px;border-radius:99px;font-size:0.68rem;font-weight:600;font-family:var(--font-mono);letter-spacing:0.03em}
+    .status-pill.connected{background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.2);color:var(--success)}
+    .status-pill.connecting{background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);color:var(--warn)}
+    .status-pill.disconnected{background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.2);color:var(--danger)}
+    .status-dot{width:5px;height:5px;border-radius:50%;background:currentColor;animation:pulse 2s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.35}}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 20px;border-radius:99px;font-size:0.8rem;font-weight:600;border:none;cursor:pointer;transition:all var(--t);font-family:var(--font-body);letter-spacing:0.01em}
+    .btn-teal{background:var(--teal);color:var(--ink)}
+    .btn-teal:hover{background:var(--teal-bright);transform:translateY(-1px);box-shadow:0 4px 20px rgba(45,212,191,0.3)}
+    .btn-amber{background:var(--amber);color:var(--ink)}
+    .btn-amber:hover{background:var(--amber-bright);transform:translateY(-1px)}
+    .btn-ghost{background:transparent;border:1px solid rgba(45,212,191,0.18);color:var(--text-2)}
+    .btn-ghost:hover{border-color:var(--teal);color:var(--teal);background:var(--teal-dim)}
+    .btn-danger{background:transparent;border:1px solid rgba(248,113,113,0.2);color:var(--danger)}
+    .btn-danger:hover{background:rgba(248,113,113,0.08)}
+    .btn-sm{padding:6px 14px;font-size:0.73rem}
+    .btn-xs{padding:4px 10px;font-size:0.68rem}
+    .section-tag{font-family:var(--font-mono);font-size:0.65rem;font-weight:500;text-transform:uppercase;letter-spacing:0.15em;color:var(--teal);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+    .section-tag::before{content:'';width:18px;height:1px;background:var(--teal);opacity:0.5}
+    .section-h2{font-family:var(--font-display);font-size:clamp(2rem,3vw,2.8rem);font-weight:900;letter-spacing:-1px;line-height:1.05;margin-bottom:12px}
+    .section-h2 em{font-style:italic;color:var(--teal)}
+    .hero-banner{background:linear-gradient(135deg,var(--ink-3) 0%,rgba(45,212,191,0.06) 50%,rgba(245,158,11,0.05) 100%);border:1px solid rgba(45,212,191,0.1);border-radius:24px;padding:52px 56px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:48px;margin-bottom:40px;position:relative;overflow:hidden}
+    .hero-banner::before{content:'✈';position:absolute;right:240px;top:20px;font-size:5rem;opacity:0.04;transform:rotate(-15deg)}
+    .hero-banner::after{content:'🌍';position:absolute;bottom:16px;right:200px;font-size:3rem;opacity:0.06}
+    .banner-stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;flex-shrink:0}
+    .stat-card{background:rgba(45,212,191,0.05);border:1px solid rgba(45,212,191,0.1);border-radius:14px;padding:18px 22px;text-align:center;transition:all var(--t)}
+    .stat-card:hover{background:rgba(45,212,191,0.08);border-color:rgba(45,212,191,0.2)}
+    .stat-card .big{font-family:var(--font-display);font-size:2rem;font-weight:900;color:var(--teal);line-height:1}
+    .stat-card .lbl{font-size:0.63rem;color:var(--text-3);text-transform:uppercase;letter-spacing:0.1em;margin-top:4px}
+    .tab-bar{display:flex;gap:3px;background:var(--ink-2);border-radius:12px;padding:4px;border:1px solid rgba(45,212,191,0.06);margin-bottom:24px;width:fit-content}
+    .tab{padding:8px 18px;border-radius:9px;font-size:0.8rem;font-weight:500;background:transparent;border:none;color:var(--text-3);cursor:pointer;transition:all var(--t);display:flex;align-items:center;gap:6px}
+    .tab.active{background:var(--ink-4);color:var(--text-1);box-shadow:0 1px 6px rgba(0,0,0,0.4)}
+    .tab:hover:not(.active){color:var(--text-2)}
+    .chat-wrap{display:grid;grid-template-columns:270px 1fr;gap:16px;height:620px}
+    .chat-wrap.full{grid-template-columns:1fr}
+    .sidebar{background:var(--ink-2);border-radius:var(--radius);border:1px solid rgba(45,212,191,0.07);display:flex;flex-direction:column;overflow:hidden}
+    .sidebar-header{padding:14px 14px 10px;border-bottom:1px solid rgba(45,212,191,0.06)}
+    .sidebar-header h3{font-family:var(--font-display);font-size:1rem;font-weight:700;margin-bottom:10px;color:var(--text-1)}
+    .sidebar-search{width:100%;padding:7px 12px;border-radius:9px;background:var(--ink-3);border:1px solid rgba(45,212,191,0.07);color:var(--text-1);font-size:0.77rem}
+    .sidebar-search:focus{outline:none;border-color:rgba(45,212,191,0.25)}
+    .sidebar-search::placeholder{color:var(--text-3)}
+    .room-list{flex:1;overflow-y:auto;padding:6px}
+    .room-list::-webkit-scrollbar{width:3px}
+    .room-list::-webkit-scrollbar-thumb{background:var(--ink-5);border-radius:99px}
+    .room-item{display:flex;align-items:center;gap:9px;padding:9px 9px;border-radius:10px;cursor:pointer;transition:all var(--t);border:1px solid transparent;position:relative}
+    .room-item:hover{background:rgba(45,212,191,0.04)}
+    .room-item.active{background:rgba(45,212,191,0.07);border-color:rgba(45,212,191,0.1)}
+    .room-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem;flex-shrink:0;position:relative}
+    .room-av.user{background:linear-gradient(135deg,var(--teal),#0891B2);color:var(--ink)}
+    .room-av.group{background:var(--ink-3);border:1px solid rgba(245,158,11,0.2);border-radius:10px;font-size:1rem;color:var(--amber)}
+    .room-av .online-ring{position:absolute;bottom:0;right:0;width:10px;height:10px;border-radius:50%;background:var(--success);border:2px solid var(--ink-2)}
+    .room-name{font-size:0.8rem;font-weight:500;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px}
+    .room-last{font-size:0.68rem;color:var(--text-3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px}
+    .room-badge{margin-left:auto;min-width:18px;height:18px;border-radius:99px;background:var(--teal);color:var(--ink);font-size:0.58rem;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;flex-shrink:0}
+    .section-label{font-family:var(--font-mono);font-size:0.6rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-3);padding:8px 10px 4px;display:flex;align-items:center;justify-content:space-between}
+    .chat-main{background:var(--ink-2);border-radius:var(--radius);border:1px solid rgba(45,212,191,0.07);display:flex;flex-direction:column;overflow:hidden}
+    .chat-header{padding:12px 16px;border-bottom:1px solid rgba(45,212,191,0.06);display:flex;align-items:center;gap:11px;min-height:58px}
+    .chat-header-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;flex-shrink:0;background:linear-gradient(135deg,var(--teal),#0891B2);color:var(--ink)}
+    .chat-header-av.group{border-radius:10px;background:var(--ink-3);border:1px solid rgba(245,158,11,0.2);font-size:1rem;color:var(--amber)}
+    .chat-header-name{font-weight:600;font-size:0.88rem}
+    .chat-header-sub{font-size:0.68rem;color:var(--text-3);margin-top:1px}
+    .live-indicator{display:flex;align-items:center;gap:5px;margin-left:auto;flex-shrink:0}
+    .live-dot{width:7px;height:7px;border-radius:50%;background:var(--success);animation:pulse 2s infinite}
+    .chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+    .chat-messages::-webkit-scrollbar{width:4px}
+    .chat-messages::-webkit-scrollbar-thumb{background:var(--ink-5);border-radius:99px}
+    .msg-row{display:flex;gap:9px;align-items:flex-end}
+    .msg-row.mine{flex-direction:row-reverse}
+    .msg-av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#0891B2);display:flex;align-items:center;justify-content:center;color:var(--ink);font-weight:700;font-size:0.68rem;flex-shrink:0}
+    .msg-av.other{background:linear-gradient(135deg,var(--rose),#BE185D)}
+    .msg-av.group-other{background:linear-gradient(135deg,var(--sky),#0369A1)}
+    .msg-bubble{max-width:62%;padding:9px 13px;border-radius:14px;font-size:0.83rem;line-height:1.65}
+    .msg-row.mine .msg-bubble{background:var(--teal);color:var(--ink);border-radius:14px 14px 3px 14px;font-weight:500}
+    .msg-row.other .msg-bubble{background:var(--ink-3);color:var(--text-1);border:1px solid rgba(45,212,191,0.06);border-radius:14px 14px 14px 3px}
+    .msg-meta{font-size:0.62rem;color:var(--text-3);margin-top:3px}
+    .msg-row.mine .msg-meta{text-align:right}
+    .msg-row.other .msg-meta{text-align:left}
+    .msg-name{font-size:0.67rem;font-weight:600;color:var(--teal);margin-bottom:2px}
+    .date-divider{text-align:center;font-family:var(--font-mono);font-size:0.6rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-3);padding:2px 0;display:flex;align-items:center;gap:10px;flex-shrink:0}
+    .date-divider::before,.date-divider::after{content:'';flex:1;height:1px;background:rgba(45,212,191,0.06)}
+    .chat-input-area{padding:12px 14px;border-top:1px solid rgba(45,212,191,0.06);display:flex;align-items:center;gap:8px}
+    .chat-input{flex:1;padding:9px 15px;border-radius:99px;background:var(--ink-3);border:1px solid rgba(45,212,191,0.08);color:var(--text-1);font-size:0.83rem;transition:all var(--t)}
+    .chat-input:focus{outline:none;border-color:rgba(45,212,191,0.28);background:var(--ink-4)}
+    .chat-input::placeholder{color:var(--text-3)}
+    .chat-input:disabled{opacity:0.4;cursor:not-allowed}
+    .send-btn{width:36px;height:36px;border-radius:50%;background:var(--teal);border:none;color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all var(--t)}
+    .send-btn:hover{background:var(--teal-bright);transform:scale(1.08)}
+    .send-btn:disabled{opacity:0.35;cursor:not-allowed;transform:none}
+    .icon-btn{width:32px;height:32px;border-radius:50%;background:transparent;border:1px solid rgba(45,212,191,0.1);color:var(--text-3);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all var(--t);flex-shrink:0}
+    .icon-btn:hover{border-color:var(--teal);color:var(--teal)}
+    .empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--text-3);padding:24px}
+    .empty-state svg{opacity:0.25}
+    .empty-state p{font-size:0.82rem;text-align:center;line-height:1.6}
+    .empty-state .hint{font-size:0.72rem;color:var(--text-3);font-family:var(--font-mono)}
+    .modal-overlay{position:fixed;inset:0;background:rgba(8,12,16,0.8);backdrop-filter:blur(8px);z-index:200;display:flex;align-items:center;justify-content:center;animation:fade-in 0.2s ease}
+    @keyframes fade-in{from{opacity:0}to{opacity:1}}
+    .modal{background:var(--ink-3);border:1px solid rgba(45,212,191,0.12);border-radius:20px;padding:32px;width:100%;max-width:460px;position:relative;animation:slide-up-modal 0.25s ease}
+    @keyframes slide-up-modal{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    .modal-title{font-family:var(--font-display);font-size:1.4rem;font-weight:700;margin-bottom:4px}
+    .modal-sub{font-size:0.8rem;color:var(--text-3);margin-bottom:24px}
+    .modal-close{position:absolute;top:16px;right:16px;width:28px;height:28px;border-radius:50%;background:var(--ink-4);border:none;color:var(--text-2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.9rem;transition:all var(--t)}
+    .modal-close:hover{background:var(--ink-5);color:var(--text-1)}
+    .form-group{margin-bottom:16px}
+    .form-label{font-size:0.73rem;font-weight:600;color:var(--text-2);margin-bottom:6px;display:block;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.05em}
+    .form-input{width:100%;padding:10px 14px;border-radius:10px;background:var(--ink-4);border:1px solid rgba(45,212,191,0.1);color:var(--text-1);font-size:0.82rem;transition:all var(--t)}
+    .form-input:focus{outline:none;border-color:rgba(45,212,191,0.3);background:var(--ink-5)}
+    .form-input::placeholder{color:var(--text-3)}
+    .member-list{max-height:180px;overflow-y:auto;border-radius:10px;border:1px solid rgba(45,212,191,0.08);background:var(--ink-4);margin-top:8px}
+    .member-list::-webkit-scrollbar{width:3px}
+    .member-list::-webkit-scrollbar-thumb{background:var(--ink-5)}
+    .member-opt{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;transition:all var(--t)}
+    .member-opt:hover{background:rgba(45,212,191,0.05)}
+    /* FIX: checkbox is display-only, click handled by parent div only */
+    .member-opt input[type=checkbox]{accent-color:var(--teal);width:14px;height:14px;pointer-events:none;flex-shrink:0}
+    .member-opt-av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#0891B2);display:flex;align-items:center;justify-content:center;color:var(--ink);font-weight:700;font-size:0.7rem;flex-shrink:0}
+    .member-opt-name{font-size:0.8rem;font-weight:500}
+    .member-opt-email{font-size:0.68rem;color:var(--text-3)}
+    .selected-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;min-height:0}
+    .tag{display:flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;background:var(--teal-dim);border:1px solid rgba(45,212,191,0.2);font-size:0.7rem;color:var(--teal);font-weight:500}
+    .tag-remove{cursor:pointer;opacity:0.6;font-size:0.8rem;line-height:1;display:flex;align-items:center}
+    .tag-remove:hover{opacity:1}
+    .inline-panel{background:var(--ink-3);border-radius:12px;padding:14px;border:1px solid rgba(45,212,191,0.1);margin-bottom:12px;animation:slide-up 0.2s ease}
+    @keyframes slide-up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    #toast-container{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:300;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+    .toast{padding:9px 20px;border-radius:99px;font-size:0.78rem;font-weight:500;background:var(--ink-3);border:1px solid rgba(45,212,191,0.12);color:var(--text-1);animation:slide-up 0.25s ease;white-space:nowrap}
+    .toast.success{background:rgba(52,211,153,0.1);border-color:rgba(52,211,153,0.25);color:var(--success)}
+    .toast.error{background:rgba(248,113,113,0.1);border-color:rgba(248,113,113,0.25);color:var(--danger)}
+    .toast.info{background:rgba(56,189,248,0.1);border-color:rgba(56,189,248,0.25);color:var(--sky)}
+    .test-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:32px}
+    .test-card{background:var(--ink-2);border-radius:14px;padding:22px;border:1px solid rgba(45,212,191,0.07);transition:all var(--t)}
+    .test-card:hover{border-color:rgba(45,212,191,0.14);transform:translateY(-2px)}
+    .stars{color:var(--amber);font-size:0.82rem;margin-bottom:10px;letter-spacing:1px}
+    .test-card p{font-size:0.82rem;color:var(--text-2);line-height:1.8;margin-bottom:16px;font-style:italic}
+    .test-author{display:flex;align-items:center;gap:9px}
+    .av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#0891B2);display:flex;align-items:center;justify-content:center;color:var(--ink);font-weight:700;font-size:0.75rem}
+    .test-author .name{font-weight:600;font-size:0.78rem}
+    .test-author .meta{font-size:0.67rem;color:var(--text-3)}
+    .divider{height:1px;background:linear-gradient(90deg,transparent,rgba(45,212,191,0.12),transparent);margin:40px 0}
+    .loading-dots{display:inline-flex;gap:3px}
+    .loading-dots span{width:5px;height:5px;border-radius:50%;background:var(--text-3);animation:bounce 1.2s infinite}
+    .loading-dots span:nth-child(2){animation-delay:0.2s}
+    .loading-dots span:nth-child(3){animation-delay:0.4s}
+    @keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-5px)}}
+  </style>
 </head>
-<body class="bg-background font-body-md text-on-background min-h-screen">
+<body>
+<div class="bg-wrap">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="grid-bg"></div>
+</div>
 
-<!-- SideNavBar -->
-<aside class="fixed left-0 top-0 h-full w-[280px] bg-white/70 backdrop-blur-xl border-r-[1.5px] border-white/30 shadow-sm flex flex-col py-8 z-50">
-    <div class="px-6 mb-10">
-        <h1 class="font-display-lg text-4xl font-bold text-primary">Traveloop</h1>
-    </div>
-    <nav class="flex-1 space-y-1">
-        <a class="flex items-center gap-3 text-on-surface-variant px-6 py-3 hover:bg-primary-container/10 hover:text-primary transition-all rounded-xl" href="dashboard.html">
-            <span class="material-symbols-outlined">dashboard</span>
-            <span>Dashboard</span>
-        </a>
-        <a class="flex items-center gap-3 text-on-surface-variant px-6 py-3 hover:bg-primary-container/10 hover:text-primary transition-all rounded-xl" href="itinerary.html">
-            <span class="material-symbols-outlined">event_note</span>
-            <span>Itinerary</span>
-        </a>
-        <a class="flex items-center gap-3 bg-primary/10 text-primary border-l-4 border-primary px-6 py-3 transition-all rounded-r-xl font-bold" href="#">
-            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">group</span>
-            <span>Friends</span>
-        </a>
-        <a class="flex items-center gap-3 text-on-surface-variant px-6 py-3 hover:bg-primary-container/10 hover:text-primary transition-all rounded-xl" href="budget.html">
-            <span class="material-symbols-outlined">payments</span>
-            <span>Budget</span>
-        </a>
-    </nav>
-</aside>
+<nav class="nav">
+  <a href="#" class="nav-logo">
+    <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
+      <path d="M16 4C9.37 4 4 9.37 4 16s5.37 12 12 12 12-5.37 12-12S22.63 4 16 4z" stroke="#2DD4BF" stroke-width="1.5"/>
+      <path d="M4 16h24M16 4a18 18 0 010 24M16 4a18 18 0 000 24" stroke="#2DD4BF" stroke-width="1.2" fill="none"/>
+      <circle cx="22" cy="10" r="3" fill="#F59E0B"/>
+    </svg>
+    Trip Planner
+  </a>
+  <ul>
+    <li><a href="#">Explore</a></li>
+    <li><a href="#">My Trips</a></li>
+    <li><a href="#">Dashboard</a></li>
+    <li><a href="#" class="active">Friends</a></li>
+  </ul>
+  <div class="nav-actions">
+    <div class="status-pill connecting" id="ws-status"><span class="status-dot"></span> Connecting</div>
+    <div id="user-chip" style="font-size:0.75rem;color:var(--text-2);padding:4px 10px;background:var(--ink-3);border-radius:99px;border:1px solid rgba(45,212,191,0.08)">···</div>
+  </div>
+</nav>
 
-<!-- TopNavBar -->
-<header class="fixed top-0 right-0 w-[calc(100%-280px)] h-16 px-10 bg-white/10 backdrop-blur-md flex justify-between items-center z-40">
-    <h2 class="text-xl font-bold text-primary">Travel Community</h2>
-    <div class="flex items-center gap-4">
-        <div class="relative">
-            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
-            <input oninput="searchFriends(this.value)" class="pl-9 pr-4 py-2 bg-white/50 border border-white/40 rounded-full text-xs w-64 focus:outline-none focus:ring-2 focus:ring-primary/20" placeholder="Find travel buddies..." type="text"/>
-        </div>
-        <button onclick="openCreateGroup()" class="bg-primary text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg shadow-primary/20 flex items-center gap-2 active:scale-95 transition-transform">
-            <span class="material-symbols-outlined text-sm">group_add</span>
+<div class="page" style="padding-top:96px">
+  <section style="margin-bottom:40px">
+    <div class="hero-banner">
+      <div>
+        <div class="section-tag">Travellers Community</div>
+        <h2 class="section-h2">Connect with fellow <em>explorers</em></h2>
+        <p style="color:var(--text-2);font-size:0.92rem;max-width:400px;line-height:1.8;margin-top:8px;font-weight:300">Chat with travellers, share itineraries, create group trips, and find your next adventure partner from our community.</p>
+        <div style="display:flex;gap:10px;margin-top:24px;flex-wrap:wrap">
+          <button class="btn btn-teal" id="join-btn">Welcome →</button>
+          <button class="btn btn-ghost" onclick="openGroupModal()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
             Create Group
+          </button>
+        </div>
+      </div>
+      <div class="banner-stats">
+        <div class="stat-card"><div class="big" id="stat-members">···</div><div class="lbl">Travellers</div></div>
+        <div class="stat-card"><div class="big">38K+</div><div class="lbl">Trips Shared</div></div>
+        <div class="stat-card"><div class="big" id="stat-online">···</div><div class="lbl">Online Now</div></div>
+        <div class="stat-card"><div class="big">4.9★</div><div class="lbl">Community Score</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section style="margin-bottom:64px">
+    <div class="section-tag">Live Messaging</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
+      <h2 class="section-h2" style="margin-bottom:0">Community <em>Chat</em></h2>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="openGroupModal()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/><circle cx="9" cy="7" r="4"/></svg>
+          New Group
         </button>
-    </div>
-</header>
-
-<main class="ml-[280px] pt-24 pb-16 px-10">
-    <div class="max-w-6xl mx-auto">
-        <!-- Active Groups Section -->
-        <section class="mb-12">
-            <header class="flex justify-between items-center mb-6">
-                <h3 class="text-2xl font-bold text-on-surface">Active Trip Groups</h3>
-                <span id="group-count-badge" class="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold">0 Groups</span>
-            </header>
-            <div id="active-groups-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Group cards injected here -->
-                <div id="empty-groups" class="col-span-full py-12 flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-[2.5rem] text-slate-400">
-                    <span class="material-symbols-outlined text-4xl mb-2">group_off</span>
-                    <p class="font-bold">No active groups yet.</p>
-                    <p class="text-xs">Add friends below to start a trip!</p>
-                </div>
-            </div>
-        </section>
-
-        <header class="mb-10">
-            <h3 class="text-3xl font-bold text-on-surface">Your Travel Network</h3>
-            <p class="text-on-surface-variant mt-1">Connect with friends and plan shared adventures.</p>
-        </header>
-
-        <!-- Friends Grid -->
-        <div id="friends-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Friend cards injected here -->
-        </div>
-    </div>
-</main>
-
-<!-- PROFILE MODAL -->
-<div id="profile-modal" class="hidden fixed inset-0 bg-black/60 z-[100] flex items-center justify-center backdrop-blur-sm p-4">
-    <div class="bg-white rounded-[2rem] max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-2xl transform transition-all scale-95 opacity-0 flex flex-col" id="profile-modal-content">
-        <!-- Header Image -->
-        <div class="h-40 bg-gradient-to-r from-primary to-secondary relative flex-shrink-0">
-            <button onclick="closeProfile()" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/20 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/40 transition-all">
-                <span class="material-symbols-outlined">close</span>
-            </button>
-        </div>
-        
-        <div class="px-8 pb-8 relative flex-1 overflow-y-auto">
-            <!-- Profile Info Overlap -->
-            <div class="-mt-16 mb-6 flex items-end gap-6">
-                <div class="w-32 h-32 rounded-[2rem] border-4 border-white overflow-hidden bg-white shadow-xl">
-                    <img id="prof-img" src="" class="w-full h-full object-cover"/>
-                </div>
-                <div class="pb-2">
-                    <h4 id="prof-name" class="text-3xl font-bold text-on-surface">...</h4>
-                    <p id="prof-handle" class="text-primary font-bold">@handle</p>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-3 gap-4 mb-8 bg-surface-container-low p-4 rounded-3xl">
-                <div class="text-center">
-                    <p id="prof-countries" class="text-xl font-bold text-on-surface">0</p>
-                    <p class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest">Countries</p>
-                </div>
-                <div class="text-center border-x border-outline-variant">
-                    <p id="prof-trips" class="text-xl font-bold text-on-surface">0</p>
-                    <p class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest">Trips</p>
-                </div>
-                <div class="text-center">
-                    <p id="prof-followers" class="text-xl font-bold text-on-surface">0</p>
-                    <p class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest">Followers</p>
-                </div>
-            </div>
-
-            <div class="space-y-6">
-                <div>
-                    <h5 class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-3">About</h5>
-                    <p id="prof-bio" class="text-on-surface-variant leading-relaxed">...</p>
-                </div>
-
-                <div>
-                    <h5 class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-4">Past Trips</h5>
-                    <div id="prof-past-trips" class="grid grid-cols-2 gap-4">
-                        <!-- Past trips cards -->
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="p-6 border-t border-outline-variant flex gap-4 bg-white flex-shrink-0">
-            <button class="flex-1 py-4 bg-primary text-white font-bold rounded-2xl shadow-lg hover:opacity-90 transition-all flex items-center justify-center gap-2">
-                <span class="material-symbols-outlined text-sm">mail</span>
-                Message
-            </button>
-            <button class="flex-1 py-4 border border-outline-variant text-on-surface font-bold rounded-2xl hover:bg-surface-container-low transition-all">
-                Invite to Trip
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- NOTIFICATION -->
-<div id="notification" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-on-surface text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-3 transform translate-y-20 transition-all z-[200]">
-    <span class="material-symbols-outlined text-secondary">verified</span>
-    <span id="notif-text" class="text-sm font-bold">Action successful</span>
-</div>
-
-<!-- GROUP PLANNER PANEL -->
-<div id="group-panel" class="fixed right-8 bottom-8 w-80 glass-card rounded-[2.5rem] shadow-2xl z-[60] flex flex-col transform translate-y-[120%] transition-all duration-500 overflow-hidden">
-    <div class="p-6 bg-primary text-white flex justify-between items-center">
-        <h4 class="font-bold">Trip Planner</h4>
-        <button onclick="toggleGroupPanel(false)" class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40"><span class="material-symbols-outlined text-sm">close</span></button>
-    </div>
-    
-    <div class="p-6 space-y-6 flex-1 overflow-y-auto max-h-[60vh]">
-        <div>
-            <label class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 block">Trip Name</label>
-            <input id="trip-name" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-primary/20" placeholder="e.g. Goa Vibes 🌴"/>
-        </div>
-        
-        <div>
-            <label class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 block">Group Members</label>
-            <div id="group-members-list" class="space-y-3">
-                <!-- Members will be injected here -->
-            </div>
-        </div>
-        
-        <div id="shared-items-section" class="pt-4 border-t border-slate-100 hidden">
-            <label class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 block">Shared Gear List</label>
-            <div id="shared-items-list" class="space-y-2">
-                <!-- Shared items will be injected here -->
-            </div>
-        </div>
-    </div>
-    
-    <div class="p-6 border-t border-slate-100 bg-slate-50">
-        <button onclick="launchTrip()" class="w-full py-4 bg-secondary text-white font-bold rounded-2xl shadow-lg hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2">
-            <span class="material-symbols-outlined">rocket_launch</span>
-            Launch Trip
+        <button class="btn btn-teal btn-sm" onclick="toggleDMPanel()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          New Message
         </button>
+      </div>
     </div>
-</div>
 
-<!-- Group Selection Modal -->
-<div id="group-select-modal" class="hidden fixed inset-0 bg-black/60 z-[110] flex items-center justify-center backdrop-blur-sm p-4">
-    <div class="bg-white rounded-[2.5rem] p-8 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-300">
-        <h4 class="text-xl font-bold text-on-surface mb-2">Add to Group</h4>
-        <p class="text-xs text-on-surface-variant mb-6">Choose where to add <span id="target-friend-name" class="font-bold text-primary"></span>:</p>
-        
-        <div class="space-y-3">
-            <button onclick="startNewGroupFromModal()" class="w-full py-4 bg-primary text-white font-bold rounded-2xl flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all">
-                <span class="material-symbols-outlined">add_circle</span>
-                New Trip Plan
-            </button>
-            
-            <div id="existing-groups-list" class="space-y-2 max-h-48 overflow-y-auto pr-1">
-                <!-- Existing groups injected here -->
+    <div class="tab-bar">
+      <button class="tab active" onclick="switchTab('public')" id="tab-public">🌐 Community Room</button>
+      <button class="tab" onclick="switchTab('dm')" id="tab-dm">💬 Direct Messages</button>
+      <button class="tab" onclick="switchTab('groups')" id="tab-groups">👥 Group Chats</button>
+    </div>
+
+    <!-- PUBLIC TAB -->
+    <div id="view-public">
+      <div class="chat-wrap full">
+        <div class="chat-main">
+          <div class="chat-header">
+            <div class="chat-header-av group">🌐</div>
+            <div>
+              <div class="chat-header-name"># travellers-lounge</div>
+              <div class="chat-header-sub" id="online-count">Loading…</div>
             </div>
+            <div class="live-indicator">
+              <span class="live-dot"></span>
+              <span style="font-size:0.7rem;color:var(--success);font-weight:600">LIVE</span>
+            </div>
+          </div>
+          <div class="chat-messages" id="public-messages">
+            <div class="empty-state">
+              <div class="loading-dots"><span></span><span></span><span></span></div>
+              <p>Loading messages…</p>
+            </div>
+          </div>
+          <div class="chat-input-area">
+            <button class="icon-btn" title="Emoji">✈️</button>
+            <input class="chat-input" id="public-input" placeholder="Share your travel thoughts…"
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendPublic()}"/>
+            <button class="send-btn" onclick="sendPublic()" id="public-send-btn">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"/></svg>
+            </button>
+          </div>
         </div>
-        
-        <button onclick="closeGroupSelect()" class="mt-6 w-full py-3 text-slate-400 font-bold text-xs hover:text-slate-600">Cancel</button>
+      </div>
     </div>
+
+    <!-- DM TAB -->
+    <div id="view-dm" style="display:none">
+      <div id="dm-panel" style="display:none;margin-bottom:12px">
+        <div class="inline-panel">
+          <div style="font-size:0.78rem;font-weight:600;color:var(--text-2);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
+            <span>Start a conversation</span>
+            <button class="modal-close" style="position:static;width:22px;height:22px;font-size:0.75rem" onclick="toggleDMPanel()">✕</button>
+          </div>
+          <div id="dm-user-search-results" style="max-height:200px;overflow-y:auto;border-radius:10px;border:1px solid rgba(45,212,191,0.08);background:var(--ink-4);margin-bottom:10px">
+            <div style="text-align:center;padding:20px;color:var(--text-3);font-size:0.78rem">Loading users…</div>
+          </div>
+        </div>
+      </div>
+      <div class="chat-wrap">
+        <div class="sidebar">
+          <div class="sidebar-header">
+            <h3>Direct Messages</h3>
+            <input class="sidebar-search" placeholder="Search…" oninput="filterDMRooms(this.value)"/>
+          </div>
+          <div class="room-list" id="dm-room-list">
+            <div style="text-align:center;padding:28px 14px;color:var(--text-3);font-size:0.76rem">No conversations yet.<br>Click "New Message" above.</div>
+          </div>
+        </div>
+        <div class="chat-main">
+          <div class="chat-header" id="dm-chat-header">
+            <div class="empty-state" style="flex-direction:row;gap:8px;padding:0">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              <span style="font-size:0.82rem">Select a conversation</span>
+            </div>
+          </div>
+          <div class="chat-messages" id="dm-messages">
+            <div class="empty-state">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              <p>Select a conversation to start chatting</p>
+              <span class="hint">Your messages are private</span>
+            </div>
+          </div>
+          <div class="chat-input-area">
+            <button class="icon-btn">😊</button>
+            <input class="chat-input" id="dm-input" placeholder="Send a message…" disabled
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendDM()}"/>
+            <button class="send-btn" onclick="sendDM()" id="dm-send-btn" disabled>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GROUPS TAB -->
+    <div id="view-groups" style="display:none">
+      <div class="chat-wrap">
+        <div class="sidebar">
+          <div class="sidebar-header">
+            <h3>Group Chats</h3>
+            <input class="sidebar-search" placeholder="Search groups…" oninput="filterGroupRooms(this.value)"/>
+          </div>
+          <div class="room-list" id="group-room-list">
+            <div style="text-align:center;padding:28px 14px;color:var(--text-3);font-size:0.76rem">No groups yet.<br>Create one above!</div>
+          </div>
+          <div style="padding:10px">
+            <button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center" onclick="openGroupModal()">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+              Create New Group
+            </button>
+          </div>
+        </div>
+        <div class="chat-main">
+          <div class="chat-header" id="group-chat-header">
+            <div class="empty-state" style="flex-direction:row;gap:8px;padding:0">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/><circle cx="9" cy="7" r="4"/></svg>
+              <span style="font-size:0.82rem">Select a group</span>
+            </div>
+          </div>
+          <div class="chat-messages" id="group-messages">
+            <div class="empty-state">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/><circle cx="9" cy="7" r="4"/></svg>
+              <p>Select a group to start chatting</p>
+              <span class="hint">Groups are shared with all members</span>
+            </div>
+          </div>
+          <div class="chat-input-area">
+            <button class="icon-btn">🗺️</button>
+            <input class="chat-input" id="group-input" placeholder="Message the group…" disabled
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendGroup()}"/>
+            <button class="send-btn" onclick="sendGroup()" id="group-send-btn" disabled>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <section>
+    <div class="section-tag">Community Stories</div>
+    <h2 class="section-h2">Real <em>connections</em></h2>
+    <div class="test-grid">
+      <div class="test-card">
+        <div class="stars">★★★★★</div>
+        <p>"Met my travel partner for Ladakh through the community room. We're now planning our third trip together!"</p>
+        <div class="test-author"><div class="av">R</div><div><div class="name">Rahul Verma</div><div class="meta">Verified · Delhi</div></div></div>
+      </div>
+      <div class="test-card">
+        <div class="stars">★★★★★</div>
+        <p>"The group chat feature made coordinating our 8-person Europe trip so easy. Best trip planning tool ever."</p>
+        <div class="test-author"><div class="av">S</div><div><div class="name">Sneha Iyer</div><div class="meta">Verified · Pune</div></div></div>
+      </div>
+      <div class="test-card">
+        <div class="stars">★★★★★</div>
+        <p>"Found budget tips for Bali in the community chat that saved me ₹15,000. The community is genuinely helpful."</p>
+        <div class="test-author"><div class="av">A</div><div><div class="name">Aditya Nair</div><div class="meta">Verified · Mumbai</div></div></div>
+      </div>
+    </div>
+  </section>
 </div>
 
-<script>
-    let friends = [];
+<!-- CREATE GROUP MODAL -->
+<div id="group-modal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeGroupModal()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeGroupModal()">✕</button>
+    <div class="section-tag" style="margin-bottom:8px">New Group</div>
+    <div class="modal-title">Create a Trip Group</div>
+    <div class="modal-sub">Bring your travel squad together in one place</div>
+    <div class="form-group">
+      <label class="form-label">Group Name</label>
+      <input class="form-input" id="group-name-input" placeholder="e.g. Goa Jan 2026 🏖️" maxlength="50"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Add Members</label>
+      <input class="form-input" id="member-search" placeholder="Search by name or email…" oninput="searchMembersModal(this.value)"/>
+      <div class="member-list" id="member-list">
+        <div style="text-align:center;padding:16px;color:var(--text-3);font-size:0.76rem">
+          <div class="loading-dots"><span></span><span></span><span></span></div>
+        </div>
+      </div>
+      <div class="selected-tags" id="selected-tags"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-teal" style="flex:1;justify-content:center" onclick="createGroup()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/><circle cx="9" cy="7" r="4"/></svg>
+        Create Group
+      </button>
+      <button class="btn btn-ghost" onclick="closeGroupModal()">Cancel</button>
+    </div>
+  </div>
+</div>
 
-    async function init() {
-        const response = await fetch('friends_data.json');
-        friends = await response.json();
-        renderFriends(friends);
-    }
+<div id="toast-container"></div>
 
-    function renderFriends(list) {
-        const grid = document.getElementById('friends-grid');
-        grid.innerHTML = list.map(friend => {
-            const isAdded = currentGroup.find(f => f.id === friend.id);
-            const btnClass = isAdded ? 'bg-secondary text-white' : 'bg-secondary/10 text-secondary';
-            const btnIcon = isAdded ? 'check' : 'group_add';
-            
-            return `
-                <div class="glass-card p-6 rounded-[2rem] hover:shadow-2xl transition-all cursor-pointer group" onclick="viewProfile(${friend.id})">
-                    <div class="flex items-center gap-4 mb-6">
-                        <div class="w-16 h-16 rounded-2xl overflow-hidden friend-avatar">
-                            <img src="${friend.avatar}" class="w-full h-full object-cover"/>
-                            <div class="status-indicator"></div>
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-on-surface group-hover:text-primary transition-colors">${friend.name}</h4>
-                            <p class="text-xs text-on-surface-variant">${friend.handle}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="flex flex-wrap gap-2 mb-6">
-                        ${friend.tags.map(tag => `
-                            <span class="px-3 py-1 bg-surface-container-low text-[10px] font-bold rounded-full text-on-surface-variant">${tag}</span>
-                        `).join('')}
-                    </div>
-                    
-                    <div class="flex gap-2">
-                        <button class="flex-1 py-3 border border-primary/20 text-primary text-xs font-bold rounded-xl hover:bg-primary hover:text-white transition-all">
-                            View Profile
-                        </button>
-                        <button id="add-btn-${friend.id}" onclick="event.stopPropagation(); addToGroup(${friend.id})" class="px-4 py-3 ${btnClass} hover:bg-secondary hover:text-white rounded-xl transition-all" title="Add to Group">
-                            <span class="material-symbols-outlined text-sm">${btnIcon}</span>
-                        </button>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
-    function viewProfile(id) {
-        const f = friends.find(x => x.id === id);
-        document.getElementById('prof-img').src = f.avatar;
-        document.getElementById('prof-name').textContent = f.name;
-        document.getElementById('prof-handle').textContent = f.handle;
-        document.getElementById('prof-countries').textContent = f.stats.countries;
-        document.getElementById('prof-trips').textContent = f.stats.trips;
-        document.getElementById('prof-followers').textContent = f.stats.followers;
-        document.getElementById('prof-bio').textContent = f.bio;
-        
-        const tripsGrid = document.getElementById('prof-past-trips');
-        tripsGrid.innerHTML = f.pastTrips.map(trip => `
-            <div class="rounded-2xl overflow-hidden bg-surface-container-low group/trip h-32 relative">
-                <img src="${trip.img}" class="w-full h-full object-cover grayscale group-hover/trip:grayscale-0 transition-all"/>
-                <div class="absolute inset-0 bg-black/40 flex flex-col justify-end p-3">
-                    <p class="text-white font-bold text-sm">${trip.city}</p>
-                    <p class="text-white/60 text-[10px]">${trip.date}</p>
-                </div>
-            </div>
-        `).join('');
+const SUPABASE_URL = "https://lpuiwcvobxsfrzokmqbc.supabase.co"
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxwdWl3Y3ZvYnhzZnJ6b2ttcWJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0NjcxNTUsImV4cCI6MjA5NDA0MzE1NX0.jfMj2IgEEEk_A0AB4IEUgsExHkTovHRycnFZIKW5774"
 
-        const modal = document.getElementById('profile-modal');
-        const content = document.getElementById('profile-modal-content');
-        modal.classList.remove('hidden');
-        setTimeout(() => {
-            content.classList.remove('scale-95', 'opacity-0');
-            content.classList.add('scale-100', 'opacity-100');
-        }, 10);
-    }
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-    function closeProfile() {
-        const modal = document.getElementById('profile-modal');
-        const content = document.getElementById('profile-modal-content');
-        content.classList.remove('scale-100', 'opacity-100');
-        content.classList.add('scale-95', 'opacity-0');
-        setTimeout(() => modal.classList.add('hidden'), 300);
-    }
+const { data: { session } } = await sb.auth.getSession()
+let localUser = null
+try { localUser = JSON.parse(localStorage.getItem('traveloop_user')) } catch(e) { localUser = null }
+if (!session && !localUser) { window.location.href = 'index.html' }
 
-    function searchFriends(val) {
-        const filtered = friends.filter(f => 
-            f.name.toLowerCase().includes(val.toLowerCase()) || 
-            f.handle.toLowerCase().includes(val.toLowerCase()) ||
-            f.tags.some(t => t.toLowerCase().includes(val.toLowerCase()))
-        );
-        renderFriends(filtered);
-    }
+const ME = session
+  ? { id: session.user.id, email: session.user.email, name: null }
+  : { id: localUser.id, email: localUser.email, name: localUser.name }
 
-    let currentGroup = [];
-    let targetFriendId = null;
+console.log("Session:", session)
+console.log("ME:", ME)
+console.log("Local user:", localUser)
+const { data: prof } = await sb.from('profiles').select('name,email').eq('id', ME.id).single()
+ME.name = prof?.name || ME.email.split('@')[0]
 
-    function addToGroup(id) {
-        const friend = friends.find(f => f.id === id);
-        targetFriendId = id;
-        
-        const existingGroups = JSON.parse(localStorage.getItem('trip_groups') || '[]');
-        
-        if (existingGroups.length > 0) {
-            // Ask user: New or Existing?
-            openGroupSelect(friend, existingGroups);
-        } else {
-            // No existing groups, just start new draft
-            toggleToNewGroup(id);
-        }
-    }
+document.getElementById('user-chip').textContent = ME.name
+document.getElementById('join-btn').textContent = `Hey ${ME.name} ✈`
 
-    function openGroupSelect(friend, groups) {
-        const modal = document.getElementById('group-select-modal');
-        const list = document.getElementById('existing-groups-list');
-        document.getElementById('target-friend-name').textContent = friend.name;
-        
-        list.innerHTML = groups.map(g => `
-            <button onclick="addToExisting(${g.id})" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-between group hover:border-primary/30 transition-all">
-                <span class="font-bold text-xs text-slate-700">${g.name}</span>
-                <span class="text-[9px] bg-primary/10 text-primary px-2 py-1 rounded-md uppercase">Add Here</span>
-            </button>
-        `).join('');
-        
-        modal.classList.remove('hidden');
-    }
+let allUsers = []
+async function loadAllUsers() {
+  const { data } = await sb.from('profiles').select('id,name,email').neq('id', ME.id).order('name')
+  allUsers = data || []
+  document.getElementById('stat-members').textContent = (allUsers.length + 1) + '+'
+  renderDMUserSearch('')
+  renderMembersModal('')
+}
+await loadAllUsers()
 
-    function closeGroupSelect() {
-        document.getElementById('group-select-modal').classList.add('hidden');
-    }
+// ── HELPERS ──
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') }
+function initials(name){ return (name||'?')[0].toUpperCase() }
+function formatTime(ts){ return new Date(ts).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}) }
+function formatDate(ts){
+  const d=new Date(ts), today=new Date(), yest=new Date()
+  yest.setDate(today.getDate()-1)
+  if(d.toDateString()===today.toDateString()) return 'Today'
+  if(d.toDateString()===yest.toDateString()) return 'Yesterday'
+  return d.toLocaleDateString('en-IN',{day:'numeric',month:'short'})
+}
+function isMe(uid){ return uid===ME.id }
+function scrollBottom(el){ setTimeout(()=>{ el.scrollTop=el.scrollHeight },60) }
 
-    function startNewGroupFromModal() {
-        toggleToNewGroup(targetFriendId);
-        closeGroupSelect();
-    }
+function setStatus(state){
+  const el=document.getElementById('ws-status')
+  el.className='status-pill '+state
+  el.innerHTML=`<span class="status-dot"></span> ${state==='connected'?'Live':state==='connecting'?'Connecting':'Offline'}`
+}
 
-    function addToExisting(groupId) {
-        let groups = JSON.parse(localStorage.getItem('trip_groups') || '[]');
-        const gIdx = groups.findIndex(g => g.id === groupId);
-        const friend = friends.find(f => f.id === targetFriendId);
-        
-        if (gIdx !== -1) {
-            // Check if already in group
-            if (groups[gIdx].members.find(m => m.id === targetFriendId)) {
-                showNotification(`${friend.name} is already in this group!`);
-            } else {
-                groups[gIdx].members.push({ ...friend, status: 'pending' });
-                localStorage.setItem('trip_groups', JSON.stringify(groups));
-                renderActiveGroups();
-                showNotification(`Added ${friend.name} to "${groups[gIdx].name}"! ✈️`);
-            }
-        }
-        closeGroupSelect();
-    }
+window.showToast = function(msg, type=''){
+  const c=document.getElementById('toast-container')
+  const t=document.createElement('div')
+  t.className='toast '+type; t.textContent=msg
+  c.appendChild(t); setTimeout(()=>t.remove(),3500)
+}
 
-    function toggleToNewGroup(id) {
-        const friend = friends.find(f => f.id === id);
-        const btn = document.getElementById(`add-btn-${id}`);
-        
-        if (currentGroup.find(f => f.id === id)) {
-            removeFromGroup(id);
-            return;
-        }
-        
-        // Mock shared items for members
-        const items = {
-            'Rosy': ['DSLR Camera', 'Memory Cards', 'Instax Cam'],
-            'Varun': ['Power Bank (20k)', 'First Aid Kit', 'Swiss Knife'],
-            'Maya': ['Water Purifier', 'Trail Map', 'Climbing Rope']
-        };
-        
-        friend.sharedItems = items[friend.name] || ['Personal Gear'];
-        currentGroup.push(friend);
-        
-        if(btn) {
-            btn.classList.remove('bg-secondary/10', 'text-secondary');
-            btn.classList.add('bg-secondary', 'text-white');
-            btn.innerHTML = '<span class="material-symbols-outlined text-sm">check</span>';
-        }
-        
-        updateGroupUI();
-        toggleGroupPanel(true);
-        showNotification(`Added ${friend.name} to draft group! 🚀`);
-    }
+function msgHTML(msg, isGroup=false){
+  const mine=isMe(msg.user_id)
+  const avClass=mine?'':(isGroup?'group-other':'other')
+  return `
+    <div class="msg-row ${mine?'mine':'other'}">
+      <div class="msg-av ${avClass}">${initials(msg.user_name)}</div>
+      <div>
+        ${!mine?`<div class="msg-name">${esc(msg.user_name||'Traveller')}</div>`:''}
+        <div class="msg-bubble">${esc(msg.content)}</div>
+        <div class="msg-meta">${formatTime(msg.created_at)}</div>
+      </div>
+    </div>`
+}
 
-    function updateGroupUI() {
-        const list = document.getElementById('group-members-list');
-        const itemsList = document.getElementById('shared-items-list');
-        const sharedSection = document.getElementById('shared-items-section');
-        
-        list.innerHTML = currentGroup.map(f => `
-            <div class="flex items-center gap-3 bg-white p-2 rounded-2xl border border-slate-100 animate-in fade-in slide-in-from-right-4 duration-300">
-                <img src="${f.avatar}" class="w-8 h-8 rounded-full object-cover"/>
-                <div class="flex-1">
-                    <span class="text-xs font-bold text-slate-700 block">${f.name}</span>
-                    <span class="text-[9px] text-primary uppercase font-bold">In Draft Group</span>
-                </div>
-                <button onclick="removeFromGroup(${f.id})" class="text-slate-300 hover:text-error"><span class="material-symbols-outlined text-sm">remove_circle</span></button>
-            </div>
-        `).join('');
+function addMsg(container, msg, isGroup=false){
+  const empty=container.querySelector('.empty-state')
+  if(empty) empty.remove()
+  container.insertAdjacentHTML('beforeend', msgHTML(msg, isGroup))
+  scrollBottom(container)
+}
 
-        if (currentGroup.length > 0) {
-            sharedSection.classList.remove('hidden');
-            itemsList.innerHTML = currentGroup.map(f => `
-                <div class="space-y-1">
-                    <p class="text-[10px] font-bold text-secondary">${f.name}'s Gear:</p>
-                    <div class="flex flex-wrap gap-1">
-                        ${f.sharedItems.map(i => `<span class="px-2 py-0.5 bg-secondary/5 text-secondary text-[9px] rounded-md border border-secondary/10">${i}</span>`).join('')}
-                    </div>
-                </div>
-            `).join('<div class="h-2"></div>');
-        } else {
-            sharedSection.classList.add('hidden');
-            toggleGroupPanel(false);
-        }
-    }
+function renderMsgList(data, container, isGroup=false){
+  if(!data?.length){ container.innerHTML=`<div class="date-divider">Start the conversation</div>`; return }
+  let html='', lastDate=null
+  data.forEach(msg=>{
+    const d=formatDate(msg.created_at)
+    if(d!==lastDate){ html+=`<div class="date-divider">${d}</div>`; lastDate=d }
+    html+=msgHTML(msg,isGroup)
+  })
+  container.innerHTML=html; scrollBottom(container)
+}
 
-    function removeFromGroup(id) {
-        currentGroup = currentGroup.filter(f => f.id !== id);
-        
-        // Reset button on card
-        const btn = document.getElementById(`add-btn-${id}`);
-        if(btn) {
-            btn.classList.add('bg-secondary/10', 'text-secondary');
-            btn.classList.remove('bg-secondary', 'text-white');
-            btn.innerHTML = '<span class="material-symbols-outlined text-sm">group_add</span>';
-        }
-        
-        updateGroupUI();
-    }
+// ── TABS ──
+window.switchTab = (tab) => {
+  ['public','dm','groups'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('active',t===tab)
+    document.getElementById('view-'+t).style.display=t===tab?'block':'none'
+  })
+}
 
-    function toggleGroupPanel(show) {
-        const panel = document.getElementById('group-panel');
-        if (show) panel.classList.remove('translate-y-[120%]');
-        else panel.classList.add('translate-y-[120%]');
-    }
+// ═══════════════════════════════════════
+// PUBLIC CHAT
+// ═══════════════════════════════════════
+async function loadPublicMessages(){
+  const { data } = await sb.from('community_messages')
+    .select('*').eq('room','general')
+    .order('created_at',{ascending:true}).limit(100)
+  renderMsgList(data, document.getElementById('public-messages'), false)
+}
 
-    function launchTrip() {
-        const name = document.getElementById('trip-name').value || "New Adventure";
-        const newGroup = {
-            id: Date.now(),
-            name: name,
-            members: currentGroup.map(f => ({
-                ...f,
-                status: 'pending' // Initial status
-            })),
-            timestamp: new Date().toLocaleDateString()
-        };
-        
-        saveGroup(newGroup);
-        
-        // Reset card buttons
-        currentGroup.forEach(f => {
-            const btn = document.getElementById(`add-btn-${f.id}`);
-            if(btn) {
-                btn.classList.add('bg-secondary/10', 'text-secondary');
-                btn.classList.remove('bg-secondary', 'text-white');
-                btn.innerHTML = '<span class="material-symbols-outlined text-sm">group_add</span>';
-            }
-        });
+const publicChannel = sb.channel('tl-public-general')
+  .on('postgres_changes',{event:'INSERT',schema:'public',table:'community_messages',filter:'room=eq.general'}, payload=>{
+    addMsg(document.getElementById('public-messages'), payload.new, false)
+  })
+  .subscribe(status=>{
+    if(status==='SUBSCRIBED'){ setStatus('connected'); showToast('Connected to live chat ✓','success') }
+    else if(status==='CHANNEL_ERROR') setStatus('disconnected')
+    else setStatus('connecting')
+  })
 
-        currentGroup = [];
-        document.getElementById('trip-name').value = '';
-        updateGroupUI();
-        toggleGroupPanel(false);
-        renderActiveGroups();
-        showNotification(`Trip "${name}" launched! Invitations sent. 🚀`);
-    }
+window.sendPublic = async () => {
+  const input=document.getElementById('public-input')
+  const content=input.value.trim(); if(!content) return
+  input.value=''
+  const btn=document.getElementById('public-send-btn')
+  btn.disabled=true
+  const {error}=await sb.from('community_messages').insert({room:'general',user_id:ME.id,user_name:ME.name,content})
+  if(error){ showToast('Send failed: '+error.message,'error'); input.value=content }
+  btn.disabled=false
+  input.focus()
+}
 
-    function saveGroup(group) {
-        let groups = JSON.parse(localStorage.getItem('trip_groups') || '[]');
-        groups.push(group);
-        localStorage.setItem('trip_groups', JSON.stringify(groups));
-    }
+// Presence
+const presenceCh=sb.channel('tl-presence-general',{config:{presence:{key:ME.id}}})
+presenceCh.on('presence',{event:'sync'},()=>{
+  const count=Object.keys(presenceCh.presenceState()).length
+  document.getElementById('online-count').textContent=`${count} traveller${count!==1?'s':''} online`
+  document.getElementById('stat-online').textContent=count+''
+}).subscribe(async s=>{
+  if(s==='SUBSCRIBED') await presenceCh.track({user_id:ME.id,name:ME.name,online_at:new Date().toISOString()})
+})
 
-    function renderActiveGroups() {
-        const groups = JSON.parse(localStorage.getItem('trip_groups') || '[]');
-        const grid = document.getElementById('active-groups-grid');
-        const empty = document.getElementById('empty-groups');
-        const badge = document.getElementById('group-count-badge');
-        
-        badge.textContent = `${groups.length} Group${groups.length !== 1 ? 's' : ''}`;
-        
-        if (groups.length === 0) {
-            grid.innerHTML = ''; // Clear the grid
-            empty.classList.remove('hidden');
-            return;
-        }
-        empty.classList.add('hidden');
-        
-        grid.innerHTML = groups.map(g => `
-            <div class="glass-card p-6 rounded-[2.5rem] shadow-lg border border-primary/10 flex flex-col h-full">
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <h4 class="font-bold text-lg text-primary">${g.name}</h4>
-                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">${g.timestamp}</p>
-                    </div>
-                    <button onclick="deleteGroup(${g.id})" class="text-slate-300 hover:text-error"><span class="material-symbols-outlined">delete</span></button>
-                </div>
-                
-                <div class="space-y-3 flex-1">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Members Status</p>
-                    ${g.members.map(m => `
-                        <div class="flex items-center justify-between bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                            <div class="flex items-center gap-3">
-                                <img src="${m.avatar}" class="w-8 h-8 rounded-full object-cover"/>
-                                <span class="text-xs font-bold text-slate-700">${m.name}</span>
-                            </div>
-                            <div class="flex gap-2">
-                                ${m.status === 'pending' ? `
-                                    <button onclick="updateMemberStatus(${g.id}, ${m.id}, 'accepted')" class="px-2 py-1 bg-green-100 text-green-600 text-[9px] font-bold rounded-lg hover:bg-green-600 hover:text-white transition-all">Accept</button>
-                                    <button onclick="updateMemberStatus(${g.id}, ${m.id}, 'rejected')" class="px-2 py-1 bg-red-100 text-red-600 text-[9px] font-bold rounded-lg hover:bg-red-600 hover:text-white transition-all">Reject</button>
-                                ` : `
-                                    <span class="px-2 py-1 ${m.status === 'accepted' ? 'bg-secondary text-white' : 'bg-red-500 text-white'} text-[9px] font-bold rounded-lg uppercase">${m.status}</span>
-                                `}
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-                
-                <button class="mt-6 w-full py-3 bg-primary/10 text-primary font-bold text-xs rounded-xl hover:bg-primary hover:text-white transition-all">
-                    View Group Chat
-                </button>
-            </div>
-        `).join('');
-    }
+// ═══════════════════════════════════════
+// DM CHAT
+// ═══════════════════════════════════════
+let activeDMRoom=null
+let dmRooms=[]
+let dmChannels={}
 
-    function updateMemberStatus(groupId, memberId, status) {
-        let groups = JSON.parse(localStorage.getItem('trip_groups') || '[]');
-        const gIdx = groups.findIndex(g => g.id === groupId);
-        if (gIdx !== -1) {
-            const mIdx = groups[gIdx].members.findIndex(m => m.id === memberId);
-            if (mIdx !== -1) {
-                groups[gIdx].members[mIdx].status = status;
-                localStorage.setItem('trip_groups', JSON.stringify(groups));
-                renderActiveGroups();
-                showNotification(`Member ${status}!`);
-            }
-        }
-    }
+function dmRoomId(uid1,uid2){ return [uid1,uid2].sort().join('__') }
 
-    function deleteGroup(id) {
-        let groups = JSON.parse(localStorage.getItem('trip_groups') || '[]');
-        groups = groups.filter(g => g.id !== id);
-        localStorage.setItem('trip_groups', JSON.stringify(groups));
-        renderActiveGroups();
-    }
+function renderDMUserSearch(q){
+  const el=document.getElementById('dm-user-search-results')
+  const filtered=allUsers.filter(u=>
+    (u.name||'').toLowerCase().includes(q.toLowerCase())||
+    (u.email||'').toLowerCase().includes(q.toLowerCase())
+  )
+  if(!filtered.length){ el.innerHTML=`<div style="text-align:center;padding:16px;color:var(--text-3);font-size:0.76rem">No users found</div>`; return }
+  el.innerHTML=filtered.map(u=>`
+    <div class="member-opt" onclick="openDMWithUser('${u.id}','${esc(u.name||u.email.split('@')[0])}')">
+      <div class="member-opt-av">${initials(u.name||u.email)}</div>
+      <div>
+        <div class="member-opt-name">${esc(u.name||u.email.split('@')[0])}</div>
+        <div class="member-opt-email">${esc(u.email)}</div>
+      </div>
+      <svg style="margin-left:auto;opacity:0.4" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+    </div>`).join('')
+}
 
-    renderActiveGroups();
-    init();
+window.openDMWithUser = async (uid, name) => {
+  const roomId=dmRoomId(ME.id, uid)
+  document.getElementById('dm-panel').style.display='none'
+  switchTab('dm')
+  // FIX: ensure the room exists in dmRooms before rendering sidebar
+  if(!dmRooms.find(r=>r.room===roomId)){
+    dmRooms.unshift({room:roomId, user_id:uid, user_name:name, content:'', created_at:new Date().toISOString()})
+  }
+  renderDMRooms(dmRooms)
+  openDMRoom(roomId, name, uid)
+}
+
+// FIX: use .ilike with % on both sides to match room containing ME.id
+async function loadDMRooms(){
+  const {data}=await sb.from('dm_messages')
+    .select('room,user_id,user_name,content,created_at')
+    .ilike('room', `%${ME.id}%`)
+    .order('created_at',{ascending:false})
+  if(!data) return
+  const rooms={}
+  data.forEach(m=>{ if(!rooms[m.room]) rooms[m.room]=m })
+  dmRooms=Object.values(rooms)
+  renderDMRooms(dmRooms)
+}
+
+function renderDMRooms(rooms){
+  const el=document.getElementById('dm-room-list')
+  if(!rooms.length){ el.innerHTML=`<div style="text-align:center;padding:28px 14px;color:var(--text-3);font-size:0.76rem">No conversations yet.<br>Click "New Message" above.</div>`; return }
+  el.innerHTML=rooms.map(r=>{
+    const parts=r.room.split('__')
+    const otherId=parts.find(p=>p!==ME.id)||''
+    const otherUser=allUsers.find(u=>u.id===otherId)
+    const otherName=otherUser?.name||r.user_name||'Traveller'
+    const isActive=activeDMRoom===r.room
+    return `
+      <div class="room-item ${isActive?'active':''}" onclick="openDMRoom('${r.room}','${esc(otherName)}','${otherId}')">
+        <div class="room-av user">${initials(otherName)}<span class="online-ring"></span></div>
+        <div style="min-width:0">
+          <div class="room-name">${esc(otherName)}</div>
+          <div class="room-last">${esc(r.content||'New conversation')}</div>
+        </div>
+      </div>`
+  }).join('')
+}
+
+window.filterDMRooms=(q)=>{
+  const filtered=dmRooms.filter(r=>r.room.toLowerCase().includes(q.toLowerCase())||r.user_name?.toLowerCase().includes(q.toLowerCase()))
+  renderDMRooms(filtered)
+}
+
+window.openDMRoom=async(roomId, otherName, otherId)=>{
+  activeDMRoom=roomId
+  document.getElementById('dm-chat-header').innerHTML=`
+    <div class="chat-header-av">${initials(otherName)}</div>
+    <div>
+      <div class="chat-header-name">${esc(otherName)}</div>
+      <div class="chat-header-sub">Private conversation</div>
+    </div>
+    <div class="live-indicator">
+      <span class="live-dot"></span>
+      <span style="font-size:0.7rem;color:var(--success)">Active</span>
+    </div>`
+  const dmInput=document.getElementById('dm-input'), dmSend=document.getElementById('dm-send-btn')
+  dmInput.disabled=false; dmSend.disabled=false
+  dmInput.placeholder=`Message ${otherName}…`; dmInput.focus()
+
+  const {data}=await sb.from('dm_messages').select('*').eq('room',roomId).order('created_at',{ascending:true}).limit(100)
+  renderMsgList(data, document.getElementById('dm-messages'), false)
+
+  if(dmChannels[roomId]) await sb.removeChannel(dmChannels[roomId])
+  dmChannels[roomId]=sb.channel('tl-dm-'+roomId)
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'dm_messages',filter:`room=eq.${roomId}`},payload=>{
+      if(activeDMRoom!==roomId) return
+      addMsg(document.getElementById('dm-messages'), payload.new, false)
+      loadDMRooms()
+    }).subscribe()
+
+  renderDMRooms(dmRooms)
+}
+
+window.sendDM=async()=>{
+  if(!activeDMRoom) return
+  const input=document.getElementById('dm-input')
+  const content=input.value.trim(); if(!content) return
+  input.value=''
+  const btn=document.getElementById('dm-send-btn')
+  btn.disabled=true
+  const {error}=await sb.from('dm_messages').insert({room:activeDMRoom,user_id:ME.id,user_name:ME.name,content})
+  if(error){ showToast('Send failed: '+error.message,'error'); input.value=content }
+  btn.disabled=false; input.focus()
+}
+
+window.toggleDMPanel=()=>{
+  const p=document.getElementById('dm-panel')
+  const show=p.style.display==='none'
+  p.style.display=show?'block':'none'
+  if(show){ switchTab('dm'); renderDMUserSearch('') }
+}
+
+// Inbox subscription for DMs
+sb.channel('tl-dm-inbox-'+ME.id)
+  .on('postgres_changes',{event:'INSERT',schema:'public',table:'dm_messages'},()=>loadDMRooms())
+  .subscribe()
+
+// ═══════════════════════════════════════
+// GROUP CHAT
+// ═══════════════════════════════════════
+let activeGroupId=null
+let myGroups=[]
+let groupChannels={}
+
+async function loadMyGroups(){
+  const {data}=await sb.from('group_members').select('group_id').eq('user_id',ME.id)
+  if(!data?.length){ renderGroupList([]); return }
+  const ids=data.map(r=>r.group_id)
+  const {data:groups}=await sb.from('groups').select('*').in('id',ids).order('created_at',{ascending:false})
+  myGroups=groups||[]
+  renderGroupList(myGroups)
+}
+
+function renderGroupList(groups){
+  const el=document.getElementById('group-room-list')
+  if(!groups.length){ el.innerHTML=`<div style="text-align:center;padding:28px 14px;color:var(--text-3);font-size:0.76rem">No groups yet.<br>Create one above!</div>`; return }
+  el.innerHTML=groups.map(g=>`
+    <div class="room-item ${activeGroupId===g.id?'active':''}" onclick="openGroupRoom('${g.id}','${esc(g.name)}')">
+      <div class="room-av group">${g.emoji||'👥'}</div>
+      <div style="min-width:0">
+        <div class="room-name">${esc(g.name)}</div>
+        <div class="room-last">${esc(g.description||'Group chat')}</div>
+      </div>
+    </div>`).join('')
+}
+
+window.filterGroupRooms=(q)=>{
+  renderGroupList(myGroups.filter(g=>g.name.toLowerCase().includes(q.toLowerCase())))
+}
+
+window.openGroupRoom=async(groupId, groupName)=>{
+  activeGroupId=groupId
+  const group=myGroups.find(g=>g.id===groupId)
+  document.getElementById('group-chat-header').innerHTML=`
+    <div class="chat-header-av group">${group?.emoji||'👥'}</div>
+    <div>
+      <div class="chat-header-name">${esc(groupName)}</div>
+      <div class="chat-header-sub">${group?.member_count||''} members · Group Chat</div>
+    </div>
+    <div class="live-indicator">
+      <span class="live-dot"></span>
+      <span style="font-size:0.7rem;color:var(--success)">Active</span>
+    </div>`
+  const gInput=document.getElementById('group-input'), gSend=document.getElementById('group-send-btn')
+  gInput.disabled=false; gSend.disabled=false
+  gInput.placeholder=`Message ${groupName}…`; gInput.focus()
+
+  const {data}=await sb.from('group_messages').select('*').eq('group_id',groupId).order('created_at',{ascending:true}).limit(100)
+  renderMsgList(data, document.getElementById('group-messages'), true)
+
+  if(groupChannels[groupId]) await sb.removeChannel(groupChannels[groupId])
+  groupChannels[groupId]=sb.channel('tl-group-'+groupId)
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'group_messages',filter:`group_id=eq.${groupId}`},payload=>{
+      if(activeGroupId!==groupId) return
+      addMsg(document.getElementById('group-messages'), payload.new, true)
+    }).subscribe()
+
+  renderGroupList(myGroups)
+}
+
+window.sendGroup=async()=>{
+  if(!activeGroupId) return
+  const input=document.getElementById('group-input')
+  const content=input.value.trim(); if(!content) return
+  input.value=''
+  const btn=document.getElementById('group-send-btn')
+  btn.disabled=true
+  const {error}=await sb.from('group_messages').insert({group_id:activeGroupId,user_id:ME.id,user_name:ME.name,content})
+  if(error){ showToast('Send failed: '+error.message,'error'); input.value=content }
+  btn.disabled=false; input.focus()
+}
+
+// ─── GROUP CREATION ───
+let selectedMembers={}
+
+window.openGroupModal=()=>{
+  document.getElementById('group-modal').style.display='flex'
+  document.getElementById('group-name-input').value=''
+  document.getElementById('member-search').value=''
+  selectedMembers={}
+  renderMembersModal('')
+  renderSelectedTags()
+  setTimeout(()=>document.getElementById('group-name-input').focus(),100)
+}
+window.closeGroupModal=()=>{ document.getElementById('group-modal').style.display='none' }
+window.searchMembersModal=(q)=>renderMembersModal(q)
+
+function renderMembersModal(q){
+  const el=document.getElementById('member-list')
+  const filtered=allUsers.filter(u=>
+    (u.name||'').toLowerCase().includes(q.toLowerCase())||
+    (u.email||'').toLowerCase().includes(q.toLowerCase())
+  )
+  if(!filtered.length){ el.innerHTML=`<div style="text-align:center;padding:14px;color:var(--text-3);font-size:0.76rem">No users found</div>`; return }
+  // FIX: checkbox has pointer-events:none (set in CSS), click handled only by parent div
+  el.innerHTML=filtered.map(u=>`
+    <div class="member-opt" onclick="toggleMember('${u.id}','${esc(u.name||u.email.split('@')[0])}','${esc(u.email)}')">
+      <input type="checkbox" id="chk-${u.id}" ${selectedMembers[u.id]?'checked':''}/>
+      <div class="member-opt-av">${initials(u.name||u.email)}</div>
+      <div>
+        <div class="member-opt-name">${esc(u.name||u.email.split('@')[0])}</div>
+        <div class="member-opt-email">${esc(u.email)}</div>
+      </div>
+    </div>`).join('')
+}
+
+window.toggleMember=(id,name,email)=>{
+  if(selectedMembers[id]) delete selectedMembers[id]
+  else selectedMembers[id]={id,name,email}
+  renderMembersModal(document.getElementById('member-search').value)
+  renderSelectedTags()
+}
+
+function renderSelectedTags(){
+  document.getElementById('selected-tags').innerHTML=Object.values(selectedMembers).map(m=>`
+    <div class="tag">
+      ${esc(m.name)}
+      <span class="tag-remove" onclick="toggleMember('${m.id}','${esc(m.name)}','${esc(m.email)}')">✕</span>
+    </div>`).join('')
+}
+
+const GROUP_EMOJIS=['✈️','🌍','🏖️','🏔️','🗺️','🌴','🎒','🛫','🏕️','🌊']
+
+window.createGroup=async()=>{
+  const name=document.getElementById('group-name-input').value.trim()
+  if(!name) return showToast('Enter a group name','error')
+  const members=Object.values(selectedMembers)
+  const emoji=GROUP_EMOJIS[Math.floor(Math.random()*GROUP_EMOJIS.length)]
+  const memberCount=members.length+1
+
+  const {data:group,error:gErr}=await sb.from('groups').insert({
+    name,emoji,created_by:ME.id,member_count:memberCount,description:`${memberCount} members`
+  }).select().single()
+  if(gErr) return showToast('Failed: '+gErr.message,'error')
+
+  const memberRows=[
+    {group_id:group.id,user_id:ME.id,user_name:ME.name,role:'admin'},
+    ...members.map(m=>({group_id:group.id,user_id:m.id,user_name:m.name,role:'member'}))
+  ]
+  const {error:mErr}=await sb.from('group_members').insert(memberRows)
+  if(mErr) return showToast('Group created but members failed: '+mErr.message,'error')
+
+  showToast(`"${name}" created! 🎉`,'success')
+  closeGroupModal()
+  await loadMyGroups()
+  switchTab('groups')
+  openGroupRoom(group.id,name)
+}
+
+// ─── INIT ───
+await loadPublicMessages()
+await loadDMRooms()
+await loadMyGroups()
 </script>
 </body>
 </html>
