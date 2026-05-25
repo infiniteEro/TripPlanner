@@ -1,4 +1,4 @@
-# 🌍 Traveloop
+# 🌍 Trip Planner
 
 Traveloop is a polished travel planning and journaling experience built around a modern, glassmorphism-inspired UI. It combines local-first data handling, trip planning tools, budget tracking, and social features into one interactive website.
 
